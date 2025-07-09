@@ -3,13 +3,41 @@ using System.Collections.Generic;
 
 public class PlayerInteraction : MonoBehaviour
 {
+    [Header("Objects")]
     public float interactionDistance = 2f;
     public KeyCode interactKey = KeyCode.E;
     public Transform objectCheck;
-
     private List<InteractableObject> nearbyInteractables = new List<InteractableObject>();
 
+
+    [Header("Zipline")]
+    [SerializeField] private float checkOffset = 1f;
+    [SerializeField] private float chechkRadius = 2f;
+
     void Update()
+    {
+        InteractWithObject();
+        InteractWithZipline();
+    }
+
+    public void InteractWithZipline()
+    {
+        if (Input.GetKeyDown(interactKey))
+        {
+            RaycastHit[] hits=Physics.SphereCastAll(objectCheck.position + Vector3.up * checkOffset, chechkRadius, Vector3.up);
+            foreach (RaycastHit hit in hits)
+            {
+                if (hit.collider.tag == "Zipline")
+                {
+                    hit.collider.GetComponent<Zipline>().StartZipline(gameObject);
+
+                }
+            }
+        }
+    }
+
+
+    public void InteractWithObject()
     {
         Collider[] colliders = Physics.OverlapSphere(objectCheck.position, interactionDistance);
         List<InteractableObject> currentInteractables = new List<InteractableObject>();

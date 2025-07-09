@@ -36,8 +36,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     public bool freeze = false;    
     private bool isAiming = false;
-    private Vector3 velocityToSet;
-    private Grappling grappling;
+    private Vector3 velocityToSet;    
 
 
     public static PlayerMovement Instance;
@@ -53,10 +52,9 @@ public class PlayerMovement : MonoBehaviour
         rb.freezeRotation = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        grappling = GetComponent<Grappling>();
-        print(transform.position);
-
     }
+
+    
 
     private void Update()
     {
