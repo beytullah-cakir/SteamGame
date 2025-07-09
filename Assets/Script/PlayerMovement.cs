@@ -1,132 +1,176 @@
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.UI;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("References")]
     public Transform orientation;
-    public Transform player;
-    public Transform playerObj;
-    public CharacterController controller;
-    public CinemachineCamera combatCam;
-    public CinemachineCamera thirdPersonCam;
+    public Image crosshair;
+    public Animator anm;
+    public GameObject playerObj;
 
     [Header("Movement")]
-    public float moveSpeed = 5f;
+    public float walkSpeed = 3f;
+    public float runSpeed = 6f;
+    private float moveSpeed;
     private Vector3 moveDirection;
 
     [Header("Gravity")]
     public float gravity = -9.81f;
-    private float verticalVelocity;
+    public bool isGrounded;
     public Transform groundCheck;
     public float groundCheckDistance = 0.4f;
     public LayerMask groundMask;
-    private bool isGrounded;
 
     public float rotationSpeed = 10f;
 
-    [Header("Aiming")]
-    public float aimMoveSpeed = 2f;
+    [Header("Jumping")]
+    public float jumpHeight = 5f;
 
-    public enum CameraStyle { Basic, Combat }
-    public CameraStyle currentStyle;
+    [Header("Physics")]
+    public float groundDrag = 4f;
+    public float airDrag = 0f;
+
+    private Rigidbody rb;
+    public bool freeze = false;    
+    private bool isAiming = false;
+    private Vector3 velocityToSet;
+    private Grappling grappling;
+
+
+    public static PlayerMovement Instance;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Start()
     {
+        rb = GetComponent<Rigidbody>();
+        rb.freezeRotation = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        SwitchCameraStyle(CameraStyle.Basic);
+        grappling = GetComponent<Grappling>();
+        print(transform.position);
+
     }
 
     private void Update()
     {
         HandleGroundCheck();
-        UpdateOrientation();
+        
+
         ReadInput();
-        ApplyGravity();
-        Move();
         UpdatePlayerRotation();
 
-        // Sað týk ile kamera stilini deðiþtir
-        if (Input.GetMouseButton(1))
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        moveSpeed = isRunning ? runSpeed : walkSpeed;
+
+        // Jump
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            if (currentStyle != CameraStyle.Combat)
-                SwitchCameraStyle(CameraStyle.Combat);
+            Jump();
         }
-        else
-        {
-            if (currentStyle != CameraStyle.Basic)
-                SwitchCameraStyle(CameraStyle.Basic);
-        }
+        isAiming = Input.GetMouseButton(1);
+        anm.SetBool("IsGrounded", isGrounded);
+        anm.SetBool("IsRunning", isRunning);
+
+
+        anm.SetBool("IsJumping", !isGrounded);
+
     }
 
-    private void HandleGroundCheck()
-    {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckDistance, groundMask);
-        if (isGrounded && verticalVelocity < 0)
-            verticalVelocity = -2f;
-    }
 
-    private void UpdateOrientation()
-    {
-        Vector3 cameraForward = Camera.main.transform.forward;
-        cameraForward.y = 0f;
 
-        if (cameraForward != Vector3.zero)
-            orientation.forward = cameraForward.normalized;
+
+    private void FixedUpdate()
+    {
+        Move();
     }
 
     private void ReadInput()
     {
         float horizontalInput = Input.GetAxisRaw("Horizontal");
         float verticalInput = Input.GetAxisRaw("Vertical");
-        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-    }
 
-    private void ApplyGravity()
-    {
-        verticalVelocity += gravity * Time.deltaTime;
+        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+
+        // Animation: Speed for Idle/Run
+        float moveAmount = new Vector2(horizontalInput, verticalInput).magnitude;
+        anm.SetFloat("Speed", moveAmount);
     }
 
     private void Move()
     {
-        float currentSpeed = currentStyle == CameraStyle.Combat ? aimMoveSpeed : moveSpeed;
-        Vector3 velocity = moveDirection.normalized * currentSpeed + Vector3.up * verticalVelocity;
-        controller.Move(velocity * Time.deltaTime);
+        if (freeze) return;
+        Vector3 targetVelocity = moveDirection.normalized * moveSpeed;
+        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+    }
+
+    private void Jump()
+    {
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        float jumpVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        rb.AddForce(Vector3.up * jumpVelocity, ForceMode.VelocityChange);
+
+
+    }
+
+
+    private void HandleGroundCheck()
+    {
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckDistance, groundMask);
     }
 
     private void UpdatePlayerRotation()
     {
-        if (currentStyle == CameraStyle.Combat)
+        if (freeze) return;
+
+        if (isAiming)
         {
-            // FPS modunda karakter yönü kameraya bakar
-            Vector3 lookDir = Camera.main.transform.forward;
-            lookDir.y = 0f;
-            if (lookDir != Vector3.zero)
-                playerObj.forward = Vector3.Slerp(playerObj.forward, lookDir.normalized, Time.deltaTime * rotationSpeed);
-        }
-        else
-        {
-            // Normal modda hareket yönüne bakar
-            if (moveDirection != Vector3.zero)
+            Vector3 lookDirection = orientation.forward;
+            lookDirection.y = 0f;
+            if (lookDirection != Vector3.zero)
             {
-                Vector3 lookDir = moveDirection.normalized;
-                playerObj.forward = Vector3.Slerp(playerObj.forward, lookDir, Time.deltaTime * rotationSpeed);
+                playerObj.transform.forward = Vector3.Slerp(playerObj.transform.forward, lookDirection.normalized, Time.deltaTime * rotationSpeed);
             }
         }
+        else if (moveDirection != Vector3.zero)
+        {
+            Vector3 lookDir = new Vector3(moveDirection.x, 0, moveDirection.z).normalized;
+            playerObj.transform.forward = Vector3.Slerp(playerObj.transform.forward, lookDir, Time.deltaTime * rotationSpeed);
+        }
     }
 
-    private void SwitchCameraStyle(CameraStyle newStyle)
+
+    public void JumpToPosition(Vector3 targetPosition, float trajectoryHeight)
+    {        
+        Vector3 offset = new Vector3(0, 2f, 0);
+        velocityToSet = CalculateJumpVelocity(transform.position, targetPosition + offset, trajectoryHeight);
+        rb.linearVelocity = velocityToSet;
+        
+    }
+    
+    
+    
+
+    public Vector3 CalculateJumpVelocity(Vector3 startPoint, Vector3 endPoint, float trajectoryHeight)
     {
-        if (currentStyle == newStyle)
-            return;
+        float gravity = Physics.gravity.y;
+        float displacementY = endPoint.y - startPoint.y;
+        Vector3 displacementXZ = new Vector3(endPoint.x - startPoint.x, 0f, endPoint.z - startPoint.z);
 
-        combatCam.Priority = 0;
-        thirdPersonCam.Priority = 0;
+        Vector3 velocityY = Vector3.up * Mathf.Sqrt(-2 * gravity * trajectoryHeight);
+        Vector3 velocityXZ = displacementXZ / (Mathf.Sqrt(-2 * trajectoryHeight / gravity)
+            + Mathf.Sqrt(2 * (displacementY - trajectoryHeight) / gravity));
 
-        if (newStyle == CameraStyle.Basic) thirdPersonCam.Priority = 10;
-        if (newStyle == CameraStyle.Combat) combatCam.Priority = 10;
-
-        currentStyle = newStyle;
+        return velocityXZ + velocityY;
     }
+
+
+
+
 }
