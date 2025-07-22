@@ -7,7 +7,7 @@ public abstract class AInteractable: MonoBehaviour
 
     public Vector3 promptPos;
 
-    void Start()
+    protected virtual void Start()
     {
         if (promptPrefab != null)
         {

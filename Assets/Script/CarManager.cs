@@ -8,18 +8,34 @@ public class CarManager : AInteractable
     public bool isDriving;
     public CinemachineCamera carFollow;
     private PrometeoCarController carController;
+    public GameObject crosshair;
 
     public override void Interact()
     {
-        player.SetActive(false);
-        player.transform.SetParent(transform);
-        promptPrefab.SetActive(false);
-        isDriving = true;
-        carFollow.Priority = 20;
-        carController.enabled = true;
+        if (!isDriving)
+        {
+            player.SetActive(false);
+            crosshair.SetActive(true);
+            player.transform.SetParent(transform);
+            promptPrefab.SetActive(false);
+            isDriving = true;
+            carFollow.Priority = 20;
+            carController.enabled = true;
+        }
+        else
+        {
+            isDriving = false;
+            player.SetActive(true);
+            player.transform.SetParent(null);
+            carFollow.Priority = 0;
+            carController.enabled = false;
+            crosshair.SetActive(false);
+        }
+        
     }
-    void Start()
+    protected override void Start()
     {
+        base.Start();
         carController = GetComponent<PrometeoCarController>();
         carController.enabled = false;
     }
@@ -27,13 +43,9 @@ public class CarManager : AInteractable
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E) && isDriving)
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            isDriving = false;
-            player.SetActive(true);
-            player.transform.SetParent(null);
-            carFollow.Priority = 0;
-            carController.enabled = false;
+            Interact();
         }
     }
 }
