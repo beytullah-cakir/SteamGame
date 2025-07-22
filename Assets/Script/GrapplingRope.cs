@@ -8,6 +8,7 @@ public class GrapplingRope : MonoBehaviour
     private LineRenderer lr;
     private Vector3 currentGrapplePosition;
     public Grappling grapplingGun;
+    public HookSystem hookSystem;
     public int quality;
     public float damper;
     public float strength;
@@ -23,7 +24,6 @@ public class GrapplingRope : MonoBehaviour
     void Awake()
     {
         lr = GetComponent<LineRenderer>();
-        
     }
 
     //Called after Update
@@ -34,23 +34,21 @@ public class GrapplingRope : MonoBehaviour
 
     void DrawRope()
     {
-        if (!grapplingGun.IsGrappling())
+        if (!grapplingGun.IsGrappling() && !hookSystem.IsSwinging())
         {
             currentGrapplePosition = grapplingGun.gunTip.position;
-            ropeAnimationTime = 0f; // reset
-            if (lr.positionCount > 0)
-                lr.positionCount = 0;
+            ropeAnimationTime = 0f; 
+            if (lr.positionCount > 0) lr.enabled = false;                
             return;
         }
-
-        if (lr.positionCount == 0)
+        else
         {
-            
+            lr.enabled = true;
             lr.positionCount = quality + 1;
         }
-        var grapplePoint = grapplingGun.GetGrapplePoint();
 
-        // Yeni hedef noktaya geçildiğinde animasyon sıfırla
+        var grapplePoint = grapplingGun.IsGrappling()? grapplingGun.GetGrapplePoint() : hookSystem.IsSwinging() ? hookSystem.GetSwingingPoint(): Vector3.zero;
+       
         if (grapplePoint != lastGrapplePoint)
         {
             ropeAnimationTime = 0f;

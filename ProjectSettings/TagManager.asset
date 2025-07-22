@@ -7,6 +7,8 @@ TagManager:
   - CameraIgnored
   - Grappleable
   - Zipline
+  - Breakable
+  - Swingable
   layers:
   - Default
   - TransparentFX
@@ -17,7 +19,7 @@ TagManager:
   - Ground
   - Grapple
   - Swing
-  - 
+  - Breakable
   - 
   - 
   - 

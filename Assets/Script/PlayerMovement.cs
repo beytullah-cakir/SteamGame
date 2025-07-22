@@ -6,8 +6,7 @@ using UnityEngine.UI;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("References")]
-    public Transform orientation;
-    public Image crosshair;
+    public Transform orientation;    
     public Animator anm;
     public GameObject playerObj;
 
@@ -33,13 +32,12 @@ public class PlayerMovement : MonoBehaviour
     public float groundDrag = 4f;
     public float airDrag = 0f;
 
-    private Rigidbody rb;
-    public bool freeze = false;    
-    private bool isAiming = false;
-    private Vector3 velocityToSet;    
-
+    public Rigidbody rb;      
+    
 
     public static PlayerMovement Instance;
+
+    public Grappling gp;
 
     private void Awake()
     {
@@ -48,31 +46,30 @@ public class PlayerMovement : MonoBehaviour
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();        
         rb.freezeRotation = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        gp= GetComponent<Grappling>();
     }
 
     
 
     private void Update()
     {
-        HandleGroundCheck();
-        
+        HandleGroundCheck();      
 
         ReadInput();
         UpdatePlayerRotation();
 
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
-        moveSpeed = isRunning ? runSpeed : walkSpeed;
+        moveSpeed = isGrounded ? isRunning ? runSpeed : walkSpeed : 1f;
 
         // Jump
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             Jump();
-        }
-        isAiming = Input.GetMouseButton(1);
+        }        
         anm.SetBool("IsGrounded", isGrounded);
         anm.SetBool("IsRunning", isRunning);
 
@@ -95,17 +92,18 @@ public class PlayerMovement : MonoBehaviour
         float verticalInput = Input.GetAxisRaw("Vertical");
 
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-
+        moveDirection.y = 0f;
+        moveDirection.Normalize();
         // Animation: Speed for Idle/Run
         float moveAmount = new Vector2(horizontalInput, verticalInput).magnitude;
         anm.SetFloat("Speed", moveAmount);
     }
 
     private void Move()
-    {
-        if (freeze) return;
+    {       
         Vector3 targetVelocity = moveDirection.normalized * moveSpeed;
-        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        Vector3 movement = targetVelocity * Time.fixedDeltaTime;
+        rb.MovePosition(rb.position + movement);
     }
 
     private void Jump()
@@ -125,31 +123,24 @@ public class PlayerMovement : MonoBehaviour
 
     private void UpdatePlayerRotation()
     {
-        if (freeze) return;
 
-        if (isAiming)
-        {
-            Vector3 lookDirection = orientation.forward;
-            lookDirection.y = 0f;
-            if (lookDirection != Vector3.zero)
-            {
-                playerObj.transform.forward = Vector3.Slerp(playerObj.transform.forward, lookDirection.normalized, Time.deltaTime * rotationSpeed);
-            }
-        }
-        else if (moveDirection != Vector3.zero)
-        {
-            Vector3 lookDir = new Vector3(moveDirection.x, 0, moveDirection.z).normalized;
-            playerObj.transform.forward = Vector3.Slerp(playerObj.transform.forward, lookDir, Time.deltaTime * rotationSpeed);
-        }
+        Vector3 lookDir = new Vector3(moveDirection.x, 0, moveDirection.z).normalized;
+        playerObj.transform.forward = Vector3.Slerp(playerObj.transform.forward, lookDir, Time.deltaTime * rotationSpeed);
+       
     }
 
 
     public void JumpToPosition(Vector3 targetPosition, float trajectoryHeight)
     {        
         Vector3 offset = new Vector3(0, 2f, 0);
-        velocityToSet = CalculateJumpVelocity(transform.position, targetPosition + offset, trajectoryHeight);
-        rb.linearVelocity = velocityToSet;
-        
+        //velocityToSet = CalculateJumpVelocity(transform.position, targetPosition + offset, trajectoryHeight);
+        //rb.linearVelocity = velocityToSet;
+        Vector3 dir= CalculateJumpVelocity(transform.position, targetPosition + offset, trajectoryHeight);
+        rb.AddForce(dir, ForceMode.Impulse);
+        gp.headAimConstraint.weight = 0f;
+        gp.bodyAimConstraint.weight = 0f;
+        gp.grappling = false;
+        anm.SetBool("Fire", false);
     }
     
     
@@ -166,7 +157,8 @@ public class PlayerMovement : MonoBehaviour
             + Mathf.Sqrt(2 * (displacementY - trajectoryHeight) / gravity));
 
         return velocityXZ + velocityY;
-    }
+    }    
+
 
 
 

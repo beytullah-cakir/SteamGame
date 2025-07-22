@@ -1,32 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class Grappling : MonoBehaviour
 {
-    [Header("References")]
+    
     private PlayerMovement pm;
-    public Transform cam;
-    public Transform gunTip;
-    public LayerMask whatIsGrappleable;
-    public LineRenderer lr;
 
-    [Header("Grappling")]
+    public Camera cam;
+
+    public Transform gunTip;
+
+    public LayerMask whatIsGrappleable;
+
+    public LineRenderer lr;   
+    
     public float maxGrappleDistance;
+
     public float grappleDelayTime;
+
     public float overshootYAxis;
 
     private Vector3 grapplePoint;
-
-    [Header("Cooldown")]
-    public float grapplingCd;
-    private float grapplingCdTimer;
-    public bool stopGrapple = false;
     
-    private KeyCode grappleKey = KeyCode.Mouse0;
+    public float grapplingCd;
 
-    private bool grappling;
+    private float grapplingCdTimer;    
 
+    public KeyCode grappleKey;
+
+    public GameObject grappleIndicator;
+
+    public MultiAimConstraint headAimConstraint, bodyAimConstraint;
+
+    public Transform aimTarget;
+
+    public bool grappling;
     private void Start()
     {
         pm = GetComponent<PlayerMovement>();
@@ -34,60 +44,59 @@ public class Grappling : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(grappleKey)) StartGrapple();
-        if (stopGrapple) StopGrapple();
+        Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
+        RaycastHit hit;
+        bool found = Physics.SphereCast(ray, 1f, out hit, maxGrappleDistance, whatIsGrappleable);
+
+        if (found && hit.collider.CompareTag("Grappleable"))
+        {
+            grappleIndicator.SetActive(true);
+            grappleIndicator.transform.position = cam.WorldToScreenPoint(hit.point);
+            
+            if (Input.GetKeyDown(grappleKey)) StartGrapple(hit);
+        }
+        else
+        {            
+            grappleIndicator.SetActive(false);
+        }
+
+
         if (grapplingCdTimer > 0)
             grapplingCdTimer -= Time.deltaTime;
     }
-    private void StartGrapple()
+    private void StartGrapple(RaycastHit hit)
     {
-        if (grapplingCdTimer > 0) return;        
-
-        RaycastHit hit;
-        if (Physics.Raycast(cam.position, cam.forward, out hit, maxGrappleDistance, whatIsGrappleable))
-        {
-            grapplePoint = hit.point;           
-
-            pm.freeze = true;
-            grappling = true;
-            Invoke(nameof(ExecuteGrapple), grappleDelayTime);
-            Invoke(nameof(ChangeValue), grappleDelayTime*2);
-        }      
-
+        if (grapplingCdTimer > 0) return;
+        grappling = true;
+        grapplePoint = hit.point;       
         
+        aimTarget.position = grapplePoint;
+        pm.anm.SetBool("Fire", true);
+        headAimConstraint.weight = 1f;
+        bodyAimConstraint.weight = 1f;
+
+        Vector3 lookDirection = grapplePoint - transform.position;
+        lookDirection.y = 0; 
+        
+        pm.playerObj.transform.rotation = Quaternion.LookRotation(lookDirection);
+        Invoke(nameof(ExecuteGrapple), grappleDelayTime);
     }
-    private void ChangeValue()=> stopGrapple = true;    
+
 
     private void ExecuteGrapple()
-    {        
-        lr.enabled = true;
-        
+    {
         Vector3 lowestPoint = new Vector3(transform.position.x, transform.position.y - 1f, transform.position.z);
 
         float grapplePointRelativeYPos = grapplePoint.y - lowestPoint.y;
         float highestPointOnArc = grapplePointRelativeYPos + overshootYAxis;
 
         if (grapplePointRelativeYPos < 0) highestPointOnArc = overshootYAxis;
-
+        
         pm.JumpToPosition(grapplePoint, highestPointOnArc);
-        
-        
     }
+   
 
-    public void StopGrapple()
-    {
-        if (pm.freeze && pm.isGrounded)
-        {
-            pm.freeze = false;
-
-            grappling = false;
-
-            grapplingCdTimer = grapplingCd;
-            stopGrapple = false;
-            lr.enabled = false;
-        }
-        
-    }
+    
 
     public bool IsGrappling()
     {

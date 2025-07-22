@@ -27,7 +27,10 @@ ModelImporter:
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
-    extraExposedTransformPaths: []
+    extraExposedTransformPaths:
+    - Beta_Joints
+    - Beta_Surface
+    - mixamorig:Hips
     extraUserProperties: []
     clipAnimations: []
     isReadable: 0

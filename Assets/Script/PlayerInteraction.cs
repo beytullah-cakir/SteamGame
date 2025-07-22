@@ -7,7 +7,8 @@ public class PlayerInteraction : MonoBehaviour
     public float interactionDistance = 2f;
     public KeyCode interactKey = KeyCode.E;
     public Transform objectCheck;
-    private List<InteractableObject> nearbyInteractables = new List<InteractableObject>();
+    private List<AInteractable> nearbyInteractables = new();
+
 
 
     [Header("Zipline")]
@@ -40,20 +41,20 @@ public class PlayerInteraction : MonoBehaviour
     public void InteractWithObject()
     {
         Collider[] colliders = Physics.OverlapSphere(objectCheck.position, interactionDistance);
-        List<InteractableObject> currentInteractables = new List<InteractableObject>();
+        List<AInteractable> currentInteractables = new List<AInteractable>();
 
         foreach (Collider col in colliders)
         {
-            InteractableObject interactable = col.GetComponent<InteractableObject>();
+            AInteractable interactable = col.GetComponent<AInteractable>();
             if (interactable != null)
             {
                 currentInteractables.Add(interactable);
 
                 if (!nearbyInteractables.Contains(interactable))
                 {
-                    nearbyInteractables.Add(interactable);
+                    nearbyInteractables.Add(interactable);                    
                     interactable.ShowPrompt(true);
-                }
+                }   
             }
         }
 
@@ -69,7 +70,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (nearbyInteractables.Count > 0)
         {
-            InteractableObject closest = GetClosestInteractable();
+            AInteractable closest = GetClosestInteractable();
             if (closest != null)
             {
                 // ✅ Prompt kameraya baksın
@@ -87,9 +88,9 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
-    private InteractableObject GetClosestInteractable()
+    private AInteractable GetClosestInteractable()
     {
-        InteractableObject closest = null;
+        AInteractable closest = null;
         float minDistance = float.MaxValue;
 
         foreach (var interactable in nearbyInteractables)
