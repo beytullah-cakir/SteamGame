@@ -57,17 +57,15 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();        
         rb.freezeRotation = true;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        
         gp= GetComponent<Grappling>();
     }
-
     
 
-    private void Update()
-    {
-        HandleGroundCheck();      
-
+    private void FixedUpdate()
+    {        
+        Move();        
+        HandleGroundCheck();
         ReadInput();
         UpdatePlayerRotation();
 
@@ -78,19 +76,11 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             Jump();
-        }        
+        }
         anm.SetBool("IsGrounded", isGrounded && !freeze);
         anm.SetBool("IsRunning", isRunning && !freeze);
         anm.SetBool("IsJumping", !isGrounded && !freeze);
         anm.SetBool("IsWalking", isWalking && !freeze);
-    }
-
-
-
-
-    private void FixedUpdate()
-    {
-        Move();
     }
 
     private void ReadInput()

@@ -2,10 +2,7 @@ using UnityEngine;
 
 public abstract class AInteractable: MonoBehaviour
 {
-    public string objectName = "Etkileþimli Obje";
-    public GameObject promptPrefab;
-
-    public Vector3 promptPos;
+    public GameObject promptPrefab;    
 
     protected virtual void Start()
     {
