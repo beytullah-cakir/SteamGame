@@ -10,11 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b4927caa4ed63d14aa10822a0b6be02a, type: 3}
-  m_Name: Stone
+  m_Name: Iron
   m_EditorClassIdentifier: 
-  tile: {fileID: 0}
-  image: {fileID: 21300000, guid: 054b0bb8f709aee4eb649b43a8152be6, type: 3}
-  itemType: 0
-  actionType: 0
-  range: {x: 5, y: 4}
-  stackable: 1
+  itemImage: {fileID: 21300000, guid: 7934b05750b334641aed2368fb3da0bb, type: 3}
+  itemName: Iron

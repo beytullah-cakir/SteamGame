@@ -8,6 +8,6 @@ public class CollectableObject : AInteractable
     public override void Interact()
     {
         InventoryManager.Instance.AddItem(item);
-        Destroy(gameObject);
+        //Destroy(gameObject);
     }
 }
