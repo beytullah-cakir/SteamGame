@@ -73,10 +73,10 @@ public class Grappling : MonoBehaviour
         aimTarget.position = grapplePoint;
         pm.anm.SetBool("Fire", true);
         headAimConstraint.weight = 1f;
-        bodyAimConstraint.weight = 1f;
+        //bodyAimConstraint.weight = 1f;
         Vector3 lookDirection = grapplePoint - transform.position;
         lookDirection.y = 0;         
-        pm.playerObj.transform.rotation = Quaternion.LookRotation(lookDirection);
+        pm.transform.rotation = Quaternion.LookRotation(lookDirection);
         Invoke(nameof(ExecuteGrapple), grappleDelayTime);
     }
 

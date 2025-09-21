@@ -8,9 +8,8 @@ public class PlayerMovement : MonoBehaviour
     
     public Transform orientation;
     
+    [HideInInspector]
     public Animator anm;
-
-    public GameObject playerObj;
     
     public float walkSpeed = 3f;
 
@@ -34,10 +33,7 @@ public class PlayerMovement : MonoBehaviour
     
     public float jumpHeight = 5f;
     
-    public float groundDrag = 4f;
-
-    public float airDrag = 0f;
-
+    [HideInInspector]
     public Rigidbody rb;
 
     public static PlayerMovement Instance;
@@ -47,6 +43,10 @@ public class PlayerMovement : MonoBehaviour
     public bool freeze;
 
     public bool isWalking;
+    
+    public bool isInteractingWithNPC;
+
+    
 
     private void Awake()
     {
@@ -57,13 +57,17 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();        
         rb.freezeRotation = true;
-        
+        anm = GetComponent<Animator>();
         gp= GetComponent<Grappling>();
+        
     }
     
 
     private void FixedUpdate()
-    {        
+    {
+        if (isInteractingWithNPC ) return;
+        
+        
         Move();        
         HandleGroundCheck();
         ReadInput();
@@ -124,7 +128,7 @@ public class PlayerMovement : MonoBehaviour
     {
 
         Vector3 lookDir = new Vector3(moveDirection.x, 0, moveDirection.z).normalized;
-        playerObj.transform.forward = Vector3.Slerp(playerObj.transform.forward, lookDir, Time.deltaTime * rotationSpeed);
+        transform.forward = Vector3.Slerp(transform.forward, lookDir, Time.deltaTime * rotationSpeed);
        
     }
 
@@ -137,7 +141,7 @@ public class PlayerMovement : MonoBehaviour
         //Vector3 dir= CalculateJumpVelocity(transform.position, targetPosition + offset, trajectoryHeight);
         //rb.AddForce(dir, ForceMode.Impulse);
         gp.headAimConstraint.weight = 0f;
-        gp.bodyAimConstraint.weight = 0f;
+        //gp.bodyAimConstraint.weight = 0f;
         gp.grappling = false;
         anm.SetBool("Fire", false);
         freeze = false;

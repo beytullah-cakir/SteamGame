@@ -9,6 +9,8 @@ TagManager:
   - Zipline
   - Breakable
   - Swingable
+  - LadderStart
+  - LadderEnd
   layers:
   - Default
   - TransparentFX
@@ -23,7 +25,7 @@ TagManager:
   - Mark
   - Player
   - PathGuide
-  - 
+  - Ledge
   - 
   - 
   - 

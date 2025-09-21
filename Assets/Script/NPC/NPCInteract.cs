@@ -1,85 +1,96 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class NPCInteract : AInteractable
 {
-    public List<TextMeshProUGUI> npcChat;
-    public List<Transform> walkPoints;
-    public float waitTimeAtPoint = 2f;
-    public Transform playerTransform;
-
-    private int currentChatIndex = -1;
+    public TextMeshProUGUI textMesh;
+    public List<Transform> walkPoints; // NPC'nin yürüyüş yolları
+    public float waitTimeAtPoint = 2f; // Her noktada bekleme süresi
+    private Collider[] hitColliders;
+    private int currentChatIndex = 0; // Şu anki metin index'i
     private Coroutine showCoroutine;
     private NavMeshAgent agent;
-    private bool isInteracting = false;
-    private bool isWalking = false;
+    public bool isInteracting = false; // NPC'nin etkileşimde olup olmadığı
+    private bool isWalking = false; // NPC'nin yürüyüp yürümeyeceği
+    public bool isTalking = false;
+    private List<string> npcChats;
 
     protected override void Start()
     {
         base.Start();
         agent = GetComponent<NavMeshAgent>();
         GoToNextPoint();
+        npcChats = new List<string>();
+        npcChats.Add("aaaaa");
+        npcChats.Add("bbbbb");
+        npcChats.Add("cccccc");
     }
 
-    private void Update()
+    protected override void Update()
     {
-        
+        base.Update();
+        CheckPlayer();
+        ShowPrompt(canInteract && !isInteracting && !isTalking);
+
+        // Oyuncu etkileşimde değilse ve NPC bir noktada bekliyorsa, yeni noktaya git
         if (!isInteracting && isWalking && !agent.pathPending && agent.remainingDistance < 0.5f)
         {
             StartCoroutine(WaitAndWalk());
         }
 
-        // NPC, etkile�im s�ras�nda oyuncuya d�ner
-        if (isInteracting && playerTransform != null)
+        // NPC, etkileşim sırasında oyuncuya döner
+        if (isInteracting && !isTalking)
         {
             StopCoroutine(WaitAndWalk());
-            Vector3 dir = (playerTransform.position - transform.position).normalized;
-            dir.y = 0;
-            if (dir != Vector3.zero)
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 5f);
         }
+
+        // Enter tuşuna basıldığında yeni metin göster
+        if (isInteracting && Input.GetKeyDown(KeyCode.Return))
+        {
+            ShowNextText();
+        }
+    }
+
+    public void CheckPlayer()
+    {
+        hitColliders = Physics.OverlapSphere(transform.position, interactArea, playerLayer);
+        PlayerMovement.Instance.isInteractingWithNPC = isInteracting;
+        canInteract = hitColliders.Length > 0 && !isInteracting && !isTalking;
     }
 
     public override void Interact()
     {
         isInteracting = true;
-        agent.isStopped = true;
-        if (currentChatIndex + 1 >= npcChat.Count)
+        agent.speed = 0;
+        textMesh.text = npcChats[0]; // İlk cümleyi direkt göster
+        currentChatIndex = 1; 
+    }
+
+    private void ShowNextText()
+    {
+        if (currentChatIndex > npcChats.Count - 1)
         {
-            EndInteraction();
+            EndInteraction(); 
             return;
         }
-       
-
+        print(currentChatIndex);
+        textMesh.text = npcChats[currentChatIndex];
         currentChatIndex++;
 
-        // �nceki coroutine �al���yorsa durdur
-        if (showCoroutine != null)
-        {
-            StopCoroutine(showCoroutine);
-        }
-
-        showCoroutine = StartCoroutine(ShowString());
     }
 
-    IEnumerator ShowString()
-    {
-        npcChat[currentChatIndex].gameObject.SetActive(true);
-        
-        yield return new WaitForSeconds(1f);
-       
-        npcChat[currentChatIndex].gameObject.SetActive(false);
-    }
 
     private void EndInteraction()
     {
-        currentChatIndex = -1;
         isInteracting = false;
-        agent.isStopped = false;
-        GoToNextPoint();
+        textMesh.text = "";
+        agent.speed = 3.5f; // NPC'yi tekrar yürütmeye başla
+        isTalking = true; // Konuşma bitince NPC'yi hareket ettir
+        GoToNextPoint(); // NPC'nin yolculuğuna devam et
     }
 
     IEnumerator WaitAndWalk()
@@ -95,8 +106,13 @@ public class NPCInteract : AInteractable
 
         Transform randomPoint = walkPoints[Random.Range(0, walkPoints.Count)];
         agent.SetDestination(randomPoint.position);
-        agent.isStopped = false;
+        agent.isStopped = false; // Yürümeye devam et
         isWalking = true;
     }
-}
 
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, interactArea);
+    }
+}
