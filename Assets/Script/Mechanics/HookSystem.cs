@@ -19,8 +19,6 @@ public class HookSystem : MonoBehaviour
     
     public GameObject grappleIndicator;
 
-    public Camera cam;
-
     public bool swinging;
 
     public float spring;
@@ -32,15 +30,15 @@ public class HookSystem : MonoBehaviour
     void Update()
     {
 
-        Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f));
         RaycastHit hit;
         bool found = Physics.SphereCast(ray, 1f, out hit, maxDistance, whatIsGrappleable);
 
         if (found && hit.collider.CompareTag("Swingable"))
         {
-            // UI göstergesini aktif et ve ekran pozisyonuna yerleþtir
+            // UI gï¿½stergesini aktif et ve ekran pozisyonuna yerleï¿½tir
             grappleIndicator.SetActive(true);
-            grappleIndicator.transform.position = cam.WorldToScreenPoint(hit.point);            
+            grappleIndicator.transform.position = Camera.main.WorldToScreenPoint(hit.point);            
             if (Input.GetMouseButtonDown(0))
             {
                 StartGrapple(hit.point);

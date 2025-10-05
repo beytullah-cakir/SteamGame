@@ -1,5 +1,6 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class Zipline : MonoBehaviour
 {
@@ -15,6 +16,10 @@ public class Zipline : MonoBehaviour
     private bool isZipping = false;
     private GameObject localZip;
 
+    private PlayerClimb playerClimb;
+    
+    TwoBoneIKConstraint rightHand, leftHand;
+
     private void Awake()
     {
         if (targetZip != null)
@@ -26,8 +31,9 @@ public class Zipline : MonoBehaviour
 
     }
 
-    private void Update()
+    protected void Update()
     {
+        
         if (!isZipping || localZip == null || targetZip==null) return;
         localZip.GetComponent<Rigidbody>().AddForce((targetZip.zipTransform.position - zipTransform.position).normalized * zipSpeed * Time.deltaTime, ForceMode.Acceleration);
         if (Vector3.Distance(localZip.transform.position, targetZip.zipTransform.position) <= arrivalTreshold)
@@ -36,9 +42,14 @@ public class Zipline : MonoBehaviour
         }
     }
 
+
     public void StartZipline(GameObject player)
     {
         if (isZipping || targetZip == null) return;
+        
+        playerClimb=player.GetComponent<PlayerClimb>();
+        playerClimb.isZipped=true;
+        SetPLayerIK(player);
         localZip=GameObject.CreatePrimitive(PrimitiveType.Sphere);
         localZip.transform.position = zipTransform.position;
         localZip.transform.localScale = Vector3.one * zipScale;
@@ -58,6 +69,7 @@ public class Zipline : MonoBehaviour
     {
         if(!isZipping) return;
         GameObject player = localZip.transform.GetChild(0).gameObject;
+        ResetPlayerIK();
         player.GetComponent<Rigidbody>().useGravity = true;
         player.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         player.GetComponent<Rigidbody>().isKinematic = false;
@@ -65,8 +77,29 @@ public class Zipline : MonoBehaviour
         player.GetComponent<Grappling>().enabled = true;
         player.transform.parent = null;
         Destroy(localZip);
+        playerClimb.isZipped=false;
         isZipping = false;
         localZip = null;
 
+    }
+
+    void SetPLayerIK(GameObject player)
+    {
+        rightHand = player.GetComponent<PlayerMovement>().rightHand;
+        leftHand= player.GetComponent<PlayerMovement>().leftHand;
+        leftHand.weight = 1;
+        rightHand.weight = 1;
+        rightHand.data.target.position = zipTransform.position;
+        rightHand.data.target.rotation = zipTransform.rotation;
+        leftHand.data.target.position = zipTransform.position;
+        leftHand.data.target.rotation = zipTransform.rotation;
+    }
+
+    void ResetPlayerIK()
+    {
+        rightHand.weight = 0;
+        leftHand.weight = 0;
+        leftHand = null;
+        rightHand = null;
     }
 }

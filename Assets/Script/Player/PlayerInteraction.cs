@@ -23,24 +23,10 @@ public class PlayerInteraction : MonoBehaviour
 
     void Update()
     {
-        InteractWithObject();
+        //InteractWithObject();
         InteractWithZipline();
-        //InteractWithNPC();
+        
     }
-
-    public void InteractWithNPC()
-    {
-        Collider[] colliders = Physics.OverlapSphere(objectCheck.position, interactionDistance);    
-        foreach (Collider col in colliders)
-        {
-            if (col.TryGetComponent(out NPCInteract nPCInteract))
-            {
-                nPCInteract.Interact();
-            }
-
-        }
-    }
-
 
 
     public void InteractWithZipline()
@@ -57,19 +43,6 @@ public class PlayerInteraction : MonoBehaviour
                 }
             }
         }
-    }
-
-    public NPCInteract GetNPCInteract()
-    {
-        Collider[] colliders = Physics.OverlapSphere(npcCheck.position, interactionDistance);
-        foreach (Collider col in colliders)
-        {
-            if (col.TryGetComponent(out NPCInteract npcInteract))
-            {
-                return npcInteract;
-            }
-        }
-        return null;
     }
 
 

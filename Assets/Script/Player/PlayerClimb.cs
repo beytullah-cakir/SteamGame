@@ -11,6 +11,8 @@ public class PlayerClimb : MonoBehaviour
     RoofLedgeDetection roofLedgeDetection;
     public Animator animator;
     private Rigidbody rb;
+    private LedgeToRoofClimb ledgeToRoofClimb;
+    public bool isZipped = false;
 
     [Header("Climbing")]
 
@@ -49,11 +51,13 @@ public class PlayerClimb : MonoBehaviour
         thirdPersonController = GetComponent<PlayerMovement>();
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+        ledgeToRoofClimb = GetComponent<LedgeToRoofClimb>();
         roofLedgeDetection = GetComponent<RoofLedgeDetection>();
     }
 
     private void Update()
     {
+        if(isZipped) return;
         CheckingMainRay(); // 1
         Inputs(); // 2
         StateConditionsCheck(); // 3
@@ -87,7 +91,7 @@ public class PlayerClimb : MonoBehaviour
             else // if Climbing 
             {
                 // Drop from ledge
-                if(verticalInp == 0)
+                if(verticalInp == 0 && !ledgeToRoofClimb.foundLedgeToRoofClimb)
                     StartCoroutine(DropLedge());
             }
         }
@@ -121,6 +125,7 @@ public class PlayerClimb : MonoBehaviour
     }
     private void StateConditionsCheck()
     {
+        if(thirdPersonController.isClimbingEnd || thirdPersonController.isLadderClimbing || thirdPersonController.isObjectPushing) return;
         if (playerState == PlayerState.NormalState)
         {
             animator.applyRootMotion = false;
@@ -257,8 +262,8 @@ public class PlayerClimb : MonoBehaviour
     }
     public IEnumerator DropLedge()
     {
-        animator.CrossFade("Braced Hang Drop To Ground", 0.2f);
-        yield return new WaitForSeconds(0.5f);
+        animator.CrossFade("Braced To Drop",0);
+        yield return new WaitForSeconds(.5f);
         playerState = PlayerState.NormalState;
         isClimbing = false;
     }

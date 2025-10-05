@@ -50,7 +50,7 @@ GameObject:
   - component: {fileID: 3979306230227556743}
   - component: {fileID: 5522417751360286719}
   m_Layer: 0
-  m_Name: Prometheus
+  m_Name: Vehicle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

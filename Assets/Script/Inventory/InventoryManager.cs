@@ -17,7 +17,7 @@ public class InventoryManager : MonoBehaviour
 
     public void AddItem(Item item)
     {
-        // Ayný item varsa üzerine ekle
+        // Aynï¿½ item varsa ï¿½zerine ekle
         for (int i = 0; i < inventorySlots.Length; i++)
         {
             InventorySlot slot = inventorySlots[i];
@@ -33,7 +33,7 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // Boþ slot bul ve yeni item spawnla
+        // Boï¿½ slot bul ve yeni item spawnla
         for (int i = 0; i < inventorySlots.Length; i++)
         {
             InventorySlot slot = inventorySlots[i];
@@ -81,66 +81,7 @@ public class InventoryManager : MonoBehaviour
     }
 
 
-    public void Craft(CraftableObject craftable)
-    {
-        // 1. Malzemeler yeterli mi?
-        foreach (var req in craftable.requiredItems)
-        {
-            int totalInInventory = 0;
-            foreach (var slot in inventorySlots)
-            {
-                InventoryItem itemInSlot = slot.GetComponentInChildren<InventoryItem>();
-                if (itemInSlot != null && itemInSlot.item == req.item)
-                {
-                    totalInInventory += itemInSlot.count;
-                }
-            }
-
-            if (totalInInventory < req.amount)
-            {
-                Debug.Log("Yetersiz malzeme: " + req.item.name);
-                return;
-            }
-        }
-
-        // 2. Malzemeleri eksilt
-        foreach (var req in craftable.requiredItems)
-        {
-            int toRemove = req.amount;
-
-            for (int i = 0; i < inventorySlots.Length; i++)
-            {
-                InventoryItem itemInSlot = inventorySlots[i].GetComponentInChildren<InventoryItem>();
-                if (itemInSlot != null && itemInSlot.item == req.item)
-                {
-                    int removed = Mathf.Min(itemInSlot.count, toRemove);
-                    itemInSlot.count -= removed;
-                    toRemove -= removed;
-
-                    if (itemInSlot.count <= 0)
-                    {
-                        Destroy(itemInSlot.gameObject);
-                    }
-                    else
-                    {
-                        itemInSlot.RefreshCount();
-                    }
-
-                    if (toRemove <= 0)
-                        break;
-                }
-            }
-        }
-
-        
-        for (int i = 0; i < craftable.resultCount; i++)
-        {
-            AddItem(craftable.resultItem);
-        }
-        Debug.Log($"Üretildi: {craftable.resultItem.name} x{craftable.resultCount}");
-
-       
-    }
+    
 
 
 }

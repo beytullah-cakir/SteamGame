@@ -5,10 +5,10 @@ using UnityEngine.Rendering;
 
 public class BreakableObject : MonoBehaviour
 {
-    public float requiredPressTime = 1.5f;     // Kapýyý kýrmak için gerekli toplam süre
-    public float pressIncreasePerTap = 0.1f;   // Her space basýþýnda eklenecek süre
-    public float decayRate = 1f;               // Saniyede ne kadar süre azalýr (basýlmazsa)
-    public float forceMultiplier = 10f;       // Kýrma kuvveti çarpaný
+    public float requiredPressTime = 1.5f;     // Kapï¿½yï¿½ kï¿½rmak iï¿½in gerekli toplam sï¿½re
+    public float pressIncreasePerTap = 0.1f;   // Her space basï¿½ï¿½ï¿½nda eklenecek sï¿½re
+    public float decayRate = 1f;               // Saniyede ne kadar sï¿½re azalï¿½r (basï¿½lmazsa)
+    public float forceMultiplier = 10f;       // Kï¿½rma kuvveti ï¿½arpanï¿½
     private float accumulatedTime = 0f;
     private bool isHooked = false;
     private bool isBroken = false;
@@ -23,7 +23,7 @@ public class BreakableObject : MonoBehaviour
     public void AttachHook()
     {
         isHooked = true;
-        Debug.Log("Kanca kapýya takýldý!");
+        Debug.Log("Kanca kapï¿½ya takï¿½ldï¿½!");
     }
 
     void Update()
@@ -31,21 +31,21 @@ public class BreakableObject : MonoBehaviour
         if (!isHooked || isBroken)
             return;
 
-        // Her basýþta süre ekle
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Her basï¿½ï¿½ta sï¿½re ekle
+        if (Input.GetMouseButtonDown(1))
         {
             accumulatedTime += pressIncreasePerTap;
-            Debug.Log("Basýþ! Ýlerleme: " + accumulatedTime.ToString("F2") + " / " + requiredPressTime);
+            Debug.Log("Basï¿½ï¿½! ï¿½lerleme: " + accumulatedTime.ToString("F2") + " / " + requiredPressTime);
         }
 
-        // Her frame ilerlemeyi azalt (zamanla düþsün)
+        // Her frame ilerlemeyi azalt (zamanla dï¿½ï¿½sï¿½n)
         if (accumulatedTime > 0f)
         {
             accumulatedTime -= decayRate * Time.deltaTime;
             accumulatedTime = Mathf.Max(0f, accumulatedTime);
         }
 
-        // Yeterince süre birikmiþse kapýyý kýr
+        // Yeterince sï¿½re birikmiï¿½se kapï¿½yï¿½ kï¿½r
         if (accumulatedTime >= requiredPressTime)
         {
             StartCoroutine(BreakObject());

@@ -11,6 +11,7 @@ TagManager:
   - Swingable
   - LadderStart
   - LadderEnd
+  - ElevatorEnd
   layers:
   - Default
   - TransparentFX

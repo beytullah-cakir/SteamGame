@@ -8,7 +8,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI hookRequiredItems;
     public TextMeshProUGUI createHookItems;
     public List<GameObject> panels;
-    public CraftableObject hook;
+    
     void Start()
     {
         
@@ -17,8 +17,7 @@ public class UIManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        hookRequiredItems.text = Hook.Instance.GetRequiredItems();
-        createHookItems.text = hook.GetRequiredItems();
+       
     }
 
     public void TogglePanel(GameObject panel)

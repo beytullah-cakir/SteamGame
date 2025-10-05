@@ -10,7 +10,7 @@ public class NPCInteract : AInteractable
     public TextMeshProUGUI textMesh;
     public List<Transform> walkPoints; // NPC'nin yürüyüş yolları
     public float waitTimeAtPoint = 2f; // Her noktada bekleme süresi
-    private Collider[] hitColliders;
+    
     private int currentChatIndex = 0; // Şu anki metin index'i
     private Coroutine showCoroutine;
     private NavMeshAgent agent;
@@ -33,7 +33,7 @@ public class NPCInteract : AInteractable
     protected override void Update()
     {
         base.Update();
-        CheckPlayer();
+        
         ShowPrompt(canInteract && !isInteracting && !isTalking);
 
         // Oyuncu etkileşimde değilse ve NPC bir noktada bekliyorsa, yeni noktaya git
@@ -55,12 +55,13 @@ public class NPCInteract : AInteractable
         }
     }
 
-    public void CheckPlayer()
+    protected override void CheckPlayer()
     {
-        hitColliders = Physics.OverlapSphere(transform.position, interactArea, playerLayer);
+        base.CheckPlayer();
         PlayerMovement.Instance.isInteractingWithNPC = isInteracting;
-        canInteract = hitColliders.Length > 0 && !isInteracting && !isTalking;
+        canInteract = canInteract && !isInteracting && !isTalking;
     }
+
 
     public override void Interact()
     {
@@ -110,9 +111,5 @@ public class NPCInteract : AInteractable
         isWalking = true;
     }
 
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, interactArea);
-    }
+    
 }

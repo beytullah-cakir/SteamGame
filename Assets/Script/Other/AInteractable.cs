@@ -8,6 +8,8 @@ public abstract class AInteractable: MonoBehaviour
     public bool canInteract;
     public float interactArea;
     public LayerMask playerLayer;
+    protected Collider[] hitColliders;
+    protected GameObject player;
 
     protected virtual void Start()
     {
@@ -19,16 +21,29 @@ public abstract class AInteractable: MonoBehaviour
 
     protected virtual void Update()
     {
+        CheckPlayer();
+        ShowPrompt(canInteract);
         if (Input.GetKeyDown(KeyCode.E) && canInteract)
         {
             Interact();
         }
+    }
+    protected virtual void CheckPlayer()
+    {
+        hitColliders = Physics.OverlapSphere(transform.position, interactArea, playerLayer);
+        canInteract = hitColliders.Length > 0;
+        if (canInteract) player = hitColliders[0].gameObject;
     }
 
     public void ShowPrompt(bool state)
     {
         if (promptPrefab != null)
             promptPrefab.SetActive(state);
+    }
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, interactArea);
     }
     public abstract void Interact();
 }

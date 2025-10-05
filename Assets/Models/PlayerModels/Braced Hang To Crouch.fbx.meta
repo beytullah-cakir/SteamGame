@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 30370d630ec2b8448b04df4dc6afffcd
+guid: ac9423208edf29049a1e4487ca1cadee
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,46 +31,30 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Climbing Ladder
+      name: mixamo.com
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 23
+      lastFrame: 34
       wrapMode: 0
       orientationOffsetY: 0
-      level: 0
+      level: -0.85
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 1
       loopBlendPositionY: 0
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 1
       keepOriginalPositionY: 0
-      keepOriginalPositionXZ: 0
+      keepOriginalPositionXZ: 1
       heightFromFeet: 1
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events:
-      - time: 0.33866668
-        functionName: RightHandStep
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 10cfdef34cc82694385d3b4700d3a85d,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.8666668
-        functionName: LeftHandStep
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 10cfdef34cc82694385d3b4700d3a85d,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
+      events: []
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -573,8 +557,7 @@ ModelImporter:
     - name: mixamorig:Spine1
       parentName: mixamorig:Spine
       position: {x: 9.32854e-23, y: 0.10002675, z: 5.83388e-18}
-      rotation: {x: -0.0000000074505797, y: -0.0000000030325378, z: 6.066244e-10,
-        w: 1}
+      rotation: {x: -0.0000000074505797, y: -0.0000000030325378, z: 6.066244e-10, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:Spine2
       parentName: mixamorig:Spine1
@@ -584,14 +567,12 @@ ModelImporter:
     - name: mixamorig:Neck
       parentName: mixamorig:Spine2
       position: {x: -4.1474883e-12, y: 0.16865322, z: 5.7686385e-16}
-      rotation: {x: 0.0000000074505797, y: 0.0000000024026303, z: 0.000000004325728,
-        w: 1}
+      rotation: {x: 0.0000000074505797, y: 0.0000000024026303, z: 0.000000004325728, w: 1}
       scale: {x: 1, y: 1, z: 0.9999999}
     - name: mixamorig:Head
       parentName: mixamorig:Neck
       position: {x: 0.0000000010756748, y: 0.09341923, z: 0.028410409}
-      rotation: {x: -0.000000014901159, y: -0.000000002549042, z: -0.0000000031295448,
-        w: 1}
+      rotation: {x: -0.000000014901159, y: -0.000000002549042, z: -0.0000000031295448, w: 1}
       scale: {x: 1, y: 0.99999994, z: 0.99999994}
     - name: mixamorig:HeadTop_End
       parentName: mixamorig:Head
@@ -611,14 +592,12 @@ ModelImporter:
     - name: mixamorig:RightForeArm
       parentName: mixamorig:RightArm
       position: {x: 9.964063e-11, y: 0.27841517, z: 3.5581792e-16}
-      rotation: {x: 0.000000040978193, y: 0.00000008684583, z: -0.000000041676685,
-        w: 1}
+      rotation: {x: 0.000000040978193, y: 0.00000008684583, z: -0.000000041676685, w: 1}
       scale: {x: 1.0000005, y: 0.9999997, z: 0.99999994}
     - name: mixamorig:RightHand
       parentName: mixamorig:RightForeArm
       position: {x: -0.00000022858599, y: 0.2832884, z: 0.000000044725386}
-      rotation: {x: -0.000000039115548, y: -0.00000008684583, z: 0.000000035048288,
-        w: 1}
+      rotation: {x: -0.000000039115548, y: -0.00000008684583, z: 0.000000035048288, w: 1}
       scale: {x: 0.9999999, y: 1.0000001, z: 0.99999994}
     - name: mixamorig:RightHandThumb1
       parentName: mixamorig:RightHand
@@ -788,8 +767,7 @@ ModelImporter:
     - name: mixamorig:LeftHandMiddle2
       parentName: mixamorig:LeftHandMiddle1
       position: {x: 1.8484327e-17, y: 0.037, z: -4.1078256e-17}
-      rotation: {x: -0.000000100583335, y: 0.000000034220392, z: -0.000021171372,
-        w: 1}
+      rotation: {x: -0.000000100583335, y: 0.000000034220392, z: -0.000021171372, w: 1}
       scale: {x: 1.0000001, y: 1.0000001, z: 1.0000001}
     - name: mixamorig:LeftHandMiddle3
       parentName: mixamorig:LeftHandMiddle2
@@ -903,8 +881,7 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: ca3138c09428b8e429d63030b74b258b,
-    type: 3}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1

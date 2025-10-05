@@ -8,8 +8,6 @@ public class Grappling : MonoBehaviour
     
     private PlayerMovement pm;
 
-    public Camera cam;
-
     public Transform gunTip;
 
     public LayerMask whatIsGrappleable;
@@ -44,14 +42,14 @@ public class Grappling : MonoBehaviour
 
     private void Update()
     {
-        Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f));
         RaycastHit hit;
         bool found = Physics.SphereCast(ray, 1f, out hit, maxGrappleDistance, whatIsGrappleable);
 
         if (found && hit.collider.CompareTag("Grappleable"))
         {
             grappleIndicator.SetActive(true);
-            grappleIndicator.transform.position = cam.WorldToScreenPoint(hit.point);
+            grappleIndicator.transform.position = Camera.main.WorldToScreenPoint(hit.point);
             
             if (Input.GetKeyDown(grappleKey)) StartGrapple(hit);
         }
