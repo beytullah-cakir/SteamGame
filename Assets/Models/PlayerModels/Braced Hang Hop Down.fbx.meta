@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 4f7f3235f0cbe7e4b9353e263c7e7367
+guid: 4f438baa7d0231a41809362f98bbf940
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,21 +31,21 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Hanging Idle
+      name: Braced Hang Hop Down
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 30
+      lastFrame: 27
       wrapMode: 0
       orientationOffsetY: 0
-      level: -0.25
+      level: 0.45
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 1
       keepOriginalOrientation: 1
       keepOriginalPositionY: 1

@@ -5,7 +5,8 @@ public class CarHookSystem : MonoBehaviour
 {
     public float hookRange = 5f;
     public LayerMask doorLayer;
-    public LineRenderer lineRenderer;
+    private LineRenderer lineRenderer;
+    public GameObject hookGameobject;
     private Transform hookedDoor;
 
 
@@ -13,9 +14,11 @@ public class CarHookSystem : MonoBehaviour
 
     void Start()
     {
-        cam = Camera.main.transform; 
+        cam = Camera.main.transform;
+        lineRenderer = hookGameobject.GetComponent<LineRenderer>();
         lineRenderer.enabled = false; 
         lineRenderer.positionCount = 2;
+        
     }
 
     void Update()
@@ -43,7 +46,7 @@ public class CarHookSystem : MonoBehaviour
     {
         if (hookedDoor != null)
         {
-            lineRenderer.SetPosition(0, transform.position);
+            lineRenderer.SetPosition(0, hookGameobject.transform.position);
             lineRenderer.SetPosition(1, hookedDoor.position);
         }
         else

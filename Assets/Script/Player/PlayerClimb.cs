@@ -3,129 +3,178 @@ using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public enum PlayerState { NormalState, ClimbingState }
+public enum PlayerState
+{
+    NormalState,
+    ClimbingState
+}
 
 public class PlayerClimb : MonoBehaviour
 {
     PlayerMovement thirdPersonController;
     RoofLedgeDetection roofLedgeDetection;
     public Animator animator;
-    private Rigidbody rb;
     private LedgeToRoofClimb ledgeToRoofClimb;
     public bool isZipped = false;
 
-    [Header("Climbing")]
-
     public PlayerState playerState;
-    
+
 
     public bool isClimbing;
     public bool canGrabLedge;
 
-    public int rayAmount = 10;
-
-    public float rayLength = 0.5f;
-    public float rayOffset = 0.15f;
-    public float rayHeight = 1.7f;
-
-    public RaycastHit rayLedgeForwardHit;
-    public RaycastHit rayLedgeDownHit;
 
     public LayerMask ledgeLayer;
 
-    [Space(5)]
     public float rayYHandCorrection;
     public float rayZHandCorrection;
-    [Space(5)]
     public float yDropToHangPos = -0.1f;
     public float zDropToHangPos = -0.05f;
-    [Space(5)]
     public float upHopPos = -0.1f;
     public float frowardHopPos = -0.05f;
 
+    [Header("Climb Detection")] 
+    public Vector3 boxHalfExtents = new Vector3(0.3f, 0.5f, 0.1f);
+    public float detectDistance = 0.6f;
+    private Vector3 climbTarget;
+    private Collider ledge;
+    private Vector3 center;
+    public float checkX, checkY;
+    public bool isHopDown;
+    public Transform playerCenter;
+    private float h, v;
 
+    [Header("Hop Values")] public float leftUp = .4f;
+    public float leftForward=.1f;
+    public float rightUp, rightForward;
+    public float hopUpUp, hopUpForward;
+    public float hopDownUp, hopDownForward;
 
     private void Start()
     {
         playerState = PlayerState.NormalState;
         thirdPersonController = GetComponent<PlayerMovement>();
         animator = GetComponent<Animator>();
-        rb = GetComponent<Rigidbody>();
         ledgeToRoofClimb = GetComponent<LedgeToRoofClimb>();
         roofLedgeDetection = GetComponent<RoofLedgeDetection>();
     }
 
+
     private void Update()
     {
-        if(isZipped) return;
-        CheckingMainRay(); // 1
-        Inputs(); // 2
-        StateConditionsCheck(); // 3
-        MatchTargetToLedge(); // 4
+        if (isZipped) return;
 
+        StateConditionsCheck();
+        CheckingMain();
+        Inputs();
+        MatchTargetToLedge();
+        UpdateBoxPos();
 
-        if (isClimbing)
+        if (isClimbing) HopMove();
+    }
+
+    private void HopMove()
+    {
+        if (isHopDown && Input.GetKeyDown(KeyCode.Space))
         {
-            HopUpDown();
+            //StartCoroutine(HopRight());
+            switch (h,v)
+            {
+                case (1,0): StartCoroutine(HopRight()); break;
+                case (-1,0): StartCoroutine(HopLeft()); break;
+                case (0,1): StartCoroutine(HopUp()); break;
+                case (0,-1): StartCoroutine(HopDown()); break;
+                case (1,1): StartCoroutine(HopLeft()); break;
+                case (-1,1): StartCoroutine(HopUp()); break;
+                case (-1,-1): StartCoroutine(HopDown()); break;
+                case (1,-1): StartCoroutine(HopDown()); break;
+            }
         }
     }
 
-    
 
     private void Inputs()
     {
-        if (Input.GetKeyDown(KeyCode.C) && !roofLedgeDetection.isRoofLedgeDetected) // Pressing Button and roof ledge is not detected
+        if (Input.GetKeyDown(KeyCode.Space) &&
+            !roofLedgeDetection.isRoofLedgeDetected) // Pressing Button and roof ledge is not detected
         {
-            if (!isClimbing ) // if Not Climbing 
+            if (!isClimbing) // if Not Climbing 
             {
-                if (canGrabLedge && rayLedgeDownHit.point != Vector3.zero)
+                if (canGrabLedge && climbTarget != Vector3.zero)
                 {
-                    Quaternion lookRot = Quaternion.LookRotation(-rayLedgeForwardHit.normal);
-                    transform.rotation = lookRot;
+                    // 🔹 Kenara dön
+                    Vector3 lookDir = (climbTarget - transform.position).normalized;
+                    lookDir.y = 0; // sadece yatayda dönsün
+                    if (lookDir != Vector3.zero)
+                        transform.rotation = Quaternion.LookRotation(lookDir);
 
-
-                    StartCoroutine(GrabLedge()); // Climb
+                    // 🔹 Tırmanmayı başlat
+                    StartCoroutine(GrabLedge());
                 }
-
             }
-            else // if Climbing 
-            {
-                // Drop from ledge
-                if(verticalInp == 0 && !ledgeToRoofClimb.foundLedgeToRoofClimb)
-                    StartCoroutine(DropLedge());
-            }
+            
         }
+        
+        if(Input.GetKeyDown(KeyCode.C) && !roofLedgeDetection.isRoofLedgeDetected && isClimbing) StartCoroutine(DropLedge());
     }
-    private void CheckingMainRay()
+
+
+    private Vector3 direction;
+
+    void UpdateBoxPos()
     {
-        if(!isClimbing && thirdPersonController.isGrounded) // if player is not climbing and player is on the ground
+        Vector3 forward = playerCenter.forward;
+        Vector3 right = playerCenter.right;
+        Vector3 up = playerCenter.up;
+
+
+        h = Input.GetAxisRaw("Horizontal");
+        v = Input.GetAxisRaw("Vertical");
+
+        direction = right * h + up * v;
+
+        if (isClimbing)
         {
-            for (int i = 0; i < rayAmount; i++)
+            if (direction != Vector3.zero)
             {
-                Vector3 rayPosition = transform.position + Vector3.up * rayHeight + Vector3.up * rayOffset * i;
-
-                Debug.DrawRay(rayPosition, transform.forward, Color.cyan);
-
-                if (Physics.Raycast(rayPosition, transform.forward, out rayLedgeForwardHit, rayLength, ledgeLayer, QueryTriggerInteraction.Ignore))
-                {
-                    canGrabLedge = true;
-
-                    Debug.DrawRay(rayLedgeForwardHit.point + Vector3.up * 0.5f, Vector3.down * 0.7f);
-                    Physics.Raycast(rayLedgeForwardHit.point + Vector3.up * 0.5f, Vector3.down, out rayLedgeDownHit, 0.7f, ledgeLayer);
-
-                    return;
-
-                }
-                else
-                {
-                    canGrabLedge = false;
-                }
+                center = playerCenter.position + forward * detectDistance + direction * checkX;
+                isHopDown = true;
+            }
+            else
+            {
+                center = playerCenter.position + forward * detectDistance + up * checkY;
+                isHopDown = false;
             }
         }
+        else
+        {
+            center = playerCenter.position + forward * detectDistance + up * checkY;
+        }
     }
+
+
+    private void CheckingMain()
+    {
+        Collider[] hits = Physics.OverlapBox(center, boxHalfExtents, transform.rotation, ledgeLayer);
+
+        if (hits.Length > 0)
+        {
+            canGrabLedge = true;
+            ledge = hits[0];
+            climbTarget = ledge.ClosestPoint(transform.position);
+
+            Debug.DrawLine(transform.position, climbTarget, Color.green);
+        }
+        else
+        {
+            canGrabLedge = false;
+        }
+    }
+
     private void StateConditionsCheck()
     {
-        if(thirdPersonController.isClimbingEnd || thirdPersonController.isLadderClimbing || thirdPersonController.isObjectPushing) return;
+        if (thirdPersonController.isClimbingEnd || thirdPersonController.isLadderClimbing ||
+            thirdPersonController.isObjectPushing) return;
         if (playerState == PlayerState.NormalState)
         {
             animator.applyRootMotion = false;
@@ -143,112 +192,43 @@ public class PlayerClimb : MonoBehaviour
     }
 
 
-    private void MatchTargetToLedge() // Matching Target To Ledge
+    private void MatchTargetToLedge()
     {
-        if(animator.GetCurrentAnimatorStateInfo(0).IsName("Idle To Braced Hang") && !animator.IsInTransition(0))
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Idle To Braced Hang") && !animator.IsInTransition(0))
         {
             Vector3 handPos = transform.forward * rayZHandCorrection + transform.up * rayYHandCorrection;
-            animator.MatchTarget(rayLedgeDownHit.point + handPos, transform.rotation, AvatarTarget.RightHand, new MatchTargetWeightMask(new Vector3(0, 1, 1), 0), 0.36f, 0.57f);
-        }
-
-        // Drop To Hang Ledge Target Match
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Drop To FreeHang") && !animator.IsInTransition(0))
-        {
-            Vector3 handDropPos = transform.forward * zDropToHangPos + transform.up * yDropToHangPos;
-            animator.MatchTarget(roofLedgeDetection.rayLedgeFwdHit.point + handDropPos, transform.rotation, AvatarTarget.LeftHand, new MatchTargetWeightMask(new Vector3(0, 1, 1), 0), 0.65f, 0.71f);
-        }
-
-        /////////////////////////////////////
-        // Hop Up Target Match
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Braced Hang Hop Up") && !animator.IsInTransition(0))
-        {
-            Vector3 handDropPos = transform.forward * frowardHopPos + transform.up * upHopPos;
-            animator.MatchTarget(hopLedgeDownHit.point + handDropPos, transform.rotation, AvatarTarget.LeftHand, new MatchTargetWeightMask(new Vector3(0, 1, 1), 0), 0.39f, 0.59f);
-        }
-
-
-        // Hop Down Target Match
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Hop Down") && !animator.IsInTransition(0))
-        {
-            Vector3 handDropPos = transform.forward * frowardHopPos + transform.up * upHopPos;
-            animator.MatchTarget(hopLedgeDownHit.point + handDropPos, transform.rotation, AvatarTarget.LeftHand, new MatchTargetWeightMask(new Vector3(0, 1, 1), 0), 0.31f, 0.56f);
-        }
-    }
-
-    float verticalInp;
-    public float rayHopOffset = 0.1f;
-    public float rayHopLength = 1f;
-    public int hopRayAmount = 7;
-    public float rayVerticalGap;
-    public float rayHopHeight = 1.6f;
-
-    RaycastHit hopLedgeForwardHit;
-    RaycastHit hopLedgeDownHit;
-
-
-    private void HopUpDown()
-    {
-        verticalInp = Input.GetAxis("Vertical");
-
-        if (verticalInp < -0.1f)
-        {
-            HopDownRayCheck();
-        }
-        else if (verticalInp > 0.1f)
-        {
-            HopUpRayCheck();
+            animator.MatchTarget(climbTarget + handPos, transform.rotation, AvatarTarget.RightHand,
+                new MatchTargetWeightMask(new Vector3(0, 1, 1), 0), 0.36f, 0.57f);
         }
         
-    }
-
-    private void HopUpRayCheck()
-    {
-        for (int i = 0; i < hopRayAmount; i++)
+        
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Braced Hang Hop Up") && !animator.IsInTransition(0))
         {
-            Vector3 rayPosition = transform.position + Vector3.up * rayHopHeight + Vector3.up * rayVerticalGap + Vector3.up * rayHopOffset * i;
-            Debug.DrawRay(rayPosition, transform.forward, Color.green);
+            Vector3 handDropPos = transform.forward * hopUpForward + transform.up * hopUpUp;
 
-            if (Physics.Raycast(rayPosition, transform.forward, out rayLedgeForwardHit, rayHopLength, ledgeLayer, QueryTriggerInteraction.Ignore))
-            {
-                Debug.DrawRay(rayLedgeForwardHit.point + Vector3.up * 0.35f, Vector3.down, Color.green);
-
-                if (Physics.Raycast(rayLedgeForwardHit.point + Vector3.up * 0.35f, Vector3.down, out hopLedgeDownHit, 0.5f, ledgeLayer))
-                {
-                    print("lkasnkjsnd");
-                    if (Input.GetKeyDown(KeyCode.C))
-                    {
-                        StartCoroutine(HopUp());
-                    }
-                }
-
-
-                break;
-            }
+            animator.MatchTarget(climbTarget + handDropPos, transform.rotation, AvatarTarget.RightHand,
+                new MatchTargetWeightMask(new Vector3(0, 1, 1), 0), 0.36f, 0.57f);
         }
-    }
 
-    private void HopDownRayCheck()
-    {
-        for (int i = 0; i < hopRayAmount; i++)
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Braced Hang Hop Right") && !animator.IsInTransition(0))
         {
-            Vector3 rayPosition = transform.position + Vector3.up * rayHopHeight - Vector3.up * rayHopOffset * i;
-            Debug.DrawRay(rayPosition, transform.forward, Color.green);
+            Vector3 handDropPos = transform.forward * rightForward + transform.up * rightUp;
+            animator.MatchTarget(climbTarget + handDropPos, transform.rotation, AvatarTarget.LeftHand,
+                new MatchTargetWeightMask(new Vector3(1, 1, 1), 0), 0.36f, 0.57f);
+        }
 
-            if (Physics.Raycast(rayPosition, transform.forward, out rayLedgeForwardHit, rayHopLength, ledgeLayer, QueryTriggerInteraction.Ignore))
-            {
-                Debug.DrawRay(rayLedgeForwardHit.point + Vector3.up * 0.35f, Vector3.down, Color.blue);
-
-                if (Physics.Raycast(rayLedgeForwardHit.point + Vector3.up * 0.35f, Vector3.down, out hopLedgeDownHit, 0.5f, ledgeLayer))
-                {
-                    if (Input.GetKeyDown(KeyCode.C))
-                    {
-                        StartCoroutine(HopDown());
-                    }
-                }
-
-
-                break;
-            }
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Braced Hang Hop Left") && !animator.IsInTransition(0))
+        {
+            Vector3 handDropPos = transform.forward * leftForward + transform.up * leftUp;
+            animator.MatchTarget(climbTarget + handDropPos, transform.rotation, AvatarTarget.RightHand,
+                new MatchTargetWeightMask(new Vector3(1, 1, 1), 0), 0.36f, 0.57f);
+        }
+        
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Braced Hang Hop Down") && !animator.IsInTransition(0))
+        {
+            Vector3 handDropPos = transform.forward * hopDownForward + transform.up * hopDownUp;
+            animator.MatchTarget(climbTarget + handDropPos, ledge.transform.rotation, AvatarTarget.RightHand,
+                new MatchTargetWeightMask(new Vector3(0, 1, 1), 0), 0.31f, 0.56f);
         }
     }
 
@@ -256,13 +236,14 @@ public class PlayerClimb : MonoBehaviour
     {
         playerState = PlayerState.ClimbingState;
         isClimbing = true;
-        animator.CrossFade("Idle To Braced Hang", 0.2f);
-        yield return null;  
+        animator.CrossFade("Idle To Braced Hang", 0);
 
+        yield return null;
     }
+
     public IEnumerator DropLedge()
     {
-        animator.CrossFade("Braced To Drop",0);
+        animator.CrossFade("Braced To Drop", 0);
         yield return new WaitForSeconds(.5f);
         playerState = PlayerState.NormalState;
         isClimbing = false;
@@ -274,20 +255,30 @@ public class PlayerClimb : MonoBehaviour
         yield return null;
     }
 
+    IEnumerator HopRight()
+    {
+        animator.CrossFade("Braced Hang Hop Right", 0);
+        yield return null;
+    }
+
+    IEnumerator HopLeft()
+    {
+        animator.CrossFade("Braced Hang Hop Left", 0);
+        yield return null;
+    }
+
     IEnumerator HopDown()
     {
-        animator.CrossFade("Hop Down", 0.2f);
+        animator.CrossFade("Braced Hang Hop Down", 0.2f);
 
         yield return null;
     }
 
 
-   private void OnDrawGizmos()
+    private void OnDrawGizmos()
     {
-        if (rayLedgeDownHit.point != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(rayLedgeDownHit.point, 0.05f);
-        }
+        Gizmos.color = Color.cyan;
+        Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);
+        Gizmos.DrawWireCube(Vector3.zero, boxHalfExtents * 2);
     }
 }

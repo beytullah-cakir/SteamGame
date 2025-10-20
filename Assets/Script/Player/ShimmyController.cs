@@ -8,26 +8,39 @@ public class ShimmyController : MonoBehaviour
     public float sphereRadius;
     public float sphereGap;
 
-    public float rayHeight = 1.6f;
-    public float rayLength = 1.0f;
+    public float upPos = 1.6f;
+    public float forwardPos = 1.0f;
+    public float radius = .5f;
 
     public bool canMoveRight;
     public bool canMoveLeft;
+    public bool canMove;
 
     public RaycastHit ledgeHit;
+    
 
     private void Start()
     {
         playerClimbScript = GetComponent<PlayerClimb>();
     }
-
+    
+    private Vector3 climbPoint;
+    private Collider ledge;
+    private Collider[] hits;
+    private Vector3 center;
     private void Update()
     {
         while (playerClimbScript.isClimbing)
         {
-            Debug.DrawRay(transform.position + Vector3.up * rayHeight, transform.forward * rayLength, Color.magenta);
-
-            Physics.Raycast(transform.position + Vector3.up * rayHeight, transform.forward, out ledgeHit, rayLength, playerClimbScript.ledgeLayer);
+            center=transform.position+transform.forward*forwardPos+Vector3.up*upPos;
+            hits = Physics.OverlapSphere(center, radius,playerClimbScript.ledgeLayer);
+            if (hits.Length > 0)
+            {
+                canMove = true;
+                ledge = hits[0];
+                climbPoint = ledge.ClosestPoint(transform.position);
+            }
+            
 
             CheckSphere();
 
@@ -43,28 +56,29 @@ public class ShimmyController : MonoBehaviour
 
     void CheckSphere()
     {
-        if (ledgeHit.point != Vector3.zero)
+        if (canMove)
         {
-            // Right Hand Sphere check if it still ledge to move
-            if (Physics.CheckSphere(ledgeHit.point + transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
+            
+            //Right Hand Sphere check if it still ledge to move
+            if (Physics.CheckSphere(climbPoint + transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
             {
                 canMoveRight = true;
-
+            
                 rightBtn = Input.GetKey(KeyCode.D);
             }
             else 
             {
                 rightBtn = false;
-
+            
                 leftBtn = Input.GetKey(KeyCode.A);
                 canMoveRight = false;
             }
-
+            
             // Left Hand Sphere check if it still ledge to move
-            if (Physics.CheckSphere(ledgeHit.point - transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
+            if (Physics.CheckSphere(climbPoint - transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
             {
                 canMoveLeft = true;
-
+            
                 leftBtn = Input.GetKey(KeyCode.A);
             }
             else
@@ -94,12 +108,14 @@ public class ShimmyController : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (ledgeHit.point != Vector3.zero)
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(center, radius);
+        if (hits != null)
         {
             Gizmos.color = Color.yellow;
 
-            Gizmos.DrawSphere(ledgeHit.point + transform.right * sphereGap, sphereRadius);
-            Gizmos.DrawSphere(ledgeHit.point - transform.right * sphereGap, sphereRadius);
+            Gizmos.DrawSphere(climbPoint + transform.right * sphereGap, sphereRadius);
+            Gizmos.DrawSphere(climbPoint - transform.right * sphereGap, sphereRadius);
             
             
         }

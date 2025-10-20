@@ -7,12 +7,8 @@ public class GrapplingRope : MonoBehaviour
     public float springValue;
     private LineRenderer lr;
     private Vector3 currentGrapplePosition;
-    public Grappling grapplingGun;
-    public HookSystem hookSystem;
+    private HookManager hookManager;
     public int quality;
-    public float damper;
-    public float strength;
-    public float velocity;
     public float waveCount;
     public float waveHeight;
     public AnimationCurve affectCurve;
@@ -24,6 +20,8 @@ public class GrapplingRope : MonoBehaviour
     void Awake()
     {
         lr = GetComponent<LineRenderer>();
+        hookManager=transform.parent.GetComponent<HookManager>();
+        
     }
 
     //Called after Update
@@ -34,9 +32,9 @@ public class GrapplingRope : MonoBehaviour
 
     void DrawRope()
     {
-        if (!grapplingGun.IsGrappling() && !hookSystem.IsSwinging())
+        if (!hookManager.isGrappling && !hookManager.isSwinging)
         {
-            currentGrapplePosition = grapplingGun.gunTip.position;
+            currentGrapplePosition = hookManager.gunTip.position;
             ropeAnimationTime = 0f; 
             if (lr.positionCount > 0) lr.enabled = false;                
             return;
@@ -47,7 +45,7 @@ public class GrapplingRope : MonoBehaviour
             lr.positionCount = quality + 1;
         }
 
-        var grapplePoint = grapplingGun.IsGrappling()? grapplingGun.GetGrapplePoint() : hookSystem.IsSwinging() ? hookSystem.GetSwingingPoint(): Vector3.zero;
+        var grapplePoint = hookManager.isGrappling? hookManager.GetGrapplePoint() : hookManager.isSwinging ? hookManager.GetSwingingPoint(): Vector3.zero;
        
         if (grapplePoint != lastGrapplePoint)
         {
@@ -58,7 +56,7 @@ public class GrapplingRope : MonoBehaviour
         ropeAnimationTime += Time.deltaTime * ropeStraightenSpeed;
 
         
-        var gunTipPosition = grapplingGun.gunTip.position;
+        var gunTipPosition = hookManager.gunTip.position;
         var up = Quaternion.LookRotation((grapplePoint - gunTipPosition).normalized) * Vector3.up;
 
         currentGrapplePosition = Vector3.Lerp(currentGrapplePosition, grapplePoint, Time.deltaTime * 12f);

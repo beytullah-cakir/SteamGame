@@ -5,13 +5,13 @@ TagManager:
   serializedVersion: 3
   tags:
   - CameraIgnored
-  - Grappleable
   - Zipline
   - Breakable
-  - Swingable
   - LadderStart
   - LadderEnd
   - ElevatorEnd
+  - Swing
+  - Grapple
   layers:
   - Default
   - TransparentFX

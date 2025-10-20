@@ -60,7 +60,7 @@ public class Zipline : MonoBehaviour
         player.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         player.GetComponent<Rigidbody>().isKinematic = true;
         player.GetComponent<PlayerMovement>().enabled = false;
-        player.GetComponent<Grappling>().enabled = false;
+        
         player.transform.parent=localZip.transform;
         isZipping = true;
     }
@@ -74,7 +74,7 @@ public class Zipline : MonoBehaviour
         player.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         player.GetComponent<Rigidbody>().isKinematic = false;
         player.GetComponent<PlayerMovement>().enabled = true;
-        player.GetComponent<Grappling>().enabled = true;
+        
         player.transform.parent = null;
         Destroy(localZip);
         playerClimb.isZipped=false;

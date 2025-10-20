@@ -6,16 +6,18 @@ using UnityEngine.Animations.Rigging;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
-    [Header("References")] public Transform cam; // Main Camera referansı
-    public Transform groundCheck; // Karakterin ayak hizasına boş obje koy
+    
+    public Transform groundCheck; 
     [HideInInspector] public Animator anm;
     [HideInInspector] public Rigidbody rb;
-    public Grappling gp; // Grappling scripti (opsiyonel)
+   
 
-    [Header("Movement Settings")] public float walkSpeed = 3f;
+    [Header("Movement Settings")] 
+    public float walkSpeed = 3f;
     public float runSpeed = 6f;
     public float pushSpeed = 2f;
     public float rotationSpeed = 10f;
+    public float climbSpeed = 1f;
 
      public float jumpForce = 5f;
     public float groundCheckDistance = 0.4f;
@@ -44,7 +46,10 @@ public class PlayerMovement : MonoBehaviour
     public static PlayerMovement Instance;
     public bool isLadderClimbing;
 
-    RopeSwing swing;
+    
+    PlayerClimb playerClimb;
+    
+    HookManager hookManager;
 
 
     private void Awake() => Instance = this;
@@ -52,16 +57,19 @@ public class PlayerMovement : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        hookManager = GetComponent<HookManager>();
+        playerClimb = GetComponent<PlayerClimb>();
         rb.freezeRotation = true;
-        swing = GetComponent<RopeSwing>();
         anm = GetComponent<Animator>();
-        gp = GetComponent<Grappling>(); // Grappling varsa alır
+        
     }
 
     void Update()
     {
+        if(playerClimb.isClimbing) return;
         inputHorizontal = Input.GetAxis("Horizontal");
         inputVertical = Input.GetAxis("Vertical");
+        lastRotation = transform.rotation;
         LadderClimb();
         UpdateAnimator();
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
@@ -71,9 +79,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (isInteractingWithNPC || isLadderClimbing || isClimbingEnd || swing.isSwing) return;
+        if (isInteractingWithNPC || isLadderClimbing || isClimbingEnd || hookManager.isSwinging || playerClimb.isClimbing) return;
 
-        isRunning = Input.GetKey(KeyCode.LeftShift);
+        isRunning = Input.GetKey(KeyCode.LeftShift) && isGrounded;
         moveSpeed = isObjectPushing ? pushSpeed : (isRunning ? runSpeed : walkSpeed);
         
 
@@ -137,16 +145,28 @@ public class PlayerMovement : MonoBehaviour
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckDistance, groundMask);
     }
-
+    
+    Quaternion lastRotation;
     private void UpdatePlayerRotation()
     {
-        if (isObjectPushing) return;
+        if (isObjectPushing || hookManager.isGrappling) return;
         
-        float angle = Mathf.Atan2(forward.x + right.x, forward.z + right.z) * Mathf.Rad2Deg;
-        Quaternion rotation = Quaternion.Euler(0, angle, 0);
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, 0.15f);
-        
+        Vector3 moveDir = new Vector3(inputHorizontal, 0, inputVertical);
+
+        if (moveDir.magnitude > 0.1f)
+        {
+            float targetAngle = Mathf.Atan2(moveDir.x, moveDir.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
+            Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            
+        }
+        else
+        {
+            
+            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, rotationSpeed * Time.deltaTime);
+        }
     }
+
 
     private void UpdateAnimator()
     {
@@ -159,34 +179,9 @@ public class PlayerMovement : MonoBehaviour
         anm.SetFloat("DirY", inputVertical);
     }
 
-    public void JumpToPosition(Vector3 targetPosition, float trajectoryHeight)
-    {
-        Vector3 offset = new Vector3(0, 2f, 0); // Biraz yukarıya nişanla
-        Vector3 velocityToSet = CalculateJumpVelocity(transform.position, targetPosition + offset, trajectoryHeight);
-        rb.linearVelocity = velocityToSet;
+    
 
-        if (gp != null)
-        {
-            gp.headAimConstraint.weight = 0f;
-            gp.grappling = false;
-        }
-
-        anm.SetBool("Fire", false);
-        freeze = false;
-    }
-
-    public Vector3 CalculateJumpVelocity(Vector3 startPoint, Vector3 endPoint, float trajectoryHeight)
-    {
-        float g = Physics.gravity.y;
-        float displacementY = endPoint.y - startPoint.y;
-        Vector3 displacementXZ = new Vector3(endPoint.x - startPoint.x, 0f, endPoint.z - startPoint.z);
-
-        Vector3 velocityY = Vector3.up * Mathf.Sqrt(-2 * g * trajectoryHeight);
-        Vector3 velocityXZ = displacementXZ / (Mathf.Sqrt(-2 * trajectoryHeight / g)
-                                               + Mathf.Sqrt(2 * (displacementY - trajectoryHeight) / g));
-
-        return velocityXZ + velocityY;
-    }
+    
 
 
     public void LadderClimb()
@@ -199,7 +194,7 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = Vector3.zero; // Fizik hızını sıfırla
 
             // Yukarı doğru local eksende hareket et
-            transform.Translate(Vector3.up * moveSpeed * Time.deltaTime, Space.World);
+            transform.Translate(Vector3.up * climbSpeed * Time.deltaTime, Space.World);
         }
     }
 
@@ -217,6 +212,16 @@ public class PlayerMovement : MonoBehaviour
             Ladder ladder = other.transform.parent.GetComponent<Ladder>();
             ladder.isPlayer = true;
             ladder.player = gameObject;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("LadderStart") && !isLadderClimbing)
+        {
+            Ladder ladder = other.transform.parent.GetComponent<Ladder>();
+            ladder.isPlayer = false;
+            
         }
     }
 

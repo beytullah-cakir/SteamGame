@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CarManager : AInteractable
 {
-    public GameObject player;
+   
     public bool isDriving;
     public CinemachineCamera carFollow;
     private PrometeoCarController carController;
@@ -40,12 +40,9 @@ public class CarManager : AInteractable
         carController.enabled = false;
     }
 
-    // Update is called once per frame
-    void Update()
+    protected override void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            Interact();
-        }
+        base.Update();
     }
+    
 }

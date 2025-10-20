@@ -168,7 +168,7 @@ MonoBehaviour:
   doorLayer:
     serializedVersion: 2
     m_Bits: 512
-  lineRenderer: {fileID: 9026231541700906861}
+  hookGameobject: {fileID: 6680836522439866251}
 --- !u!65 &3979306230227556743
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -204,11 +204,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   promptPrefab: {fileID: 7861271216927099150}
   canInteract: 0
-  interactArea: 0
+  interactArea: 3
   playerLayer:
     serializedVersion: 2
-    m_Bits: 0
-  player: {fileID: 0}
+    m_Bits: 2048
   isDriving: 0
   carFollow: {fileID: 0}
   crosshair: {fileID: 0}
@@ -894,7 +893,6 @@ GameObject:
   - component: {fileID: 4167824701120670053}
   - component: {fileID: 6927062838276881135}
   - component: {fileID: 4983471391167856466}
-  - component: {fileID: 6123791355826490122}
   - component: {fileID: 9026231541700906861}
   m_Layer: 0
   m_Name: Hook
@@ -997,24 +995,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6123791355826490122
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6680836522439866251}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ff7e28bbca359747b713967e12f6ec5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  requiredItems:
-  - item: {fileID: 11400000, guid: d97009f5565ed1940a4cfaddb78303d6, type: 2}
-    amountRequired: 10
-  upgradeButton: {fileID: 0}
-  upgradeLevel: 0
-  increasePerLevel: 2
 --- !u!120 &9026231541700906861
 LineRenderer:
   serializedVersion: 2
@@ -1023,7 +1003,7 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6680836522439866251}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1041,7 +1021,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 9231a003ee050b04090367f5e8155b6b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1073,8 +1053,8 @@ LineRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 0.010601044
+        value: 0.21621704
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -1086,7 +1066,7 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 0, g: 0, b: 0, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
@@ -1111,12 +1091,12 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
-    numCornerVertices: 0
-    numCapVertices: 0
-    alignment: 0
+    numCornerVertices: 90
+    numCapVertices: 90
+    alignment: 1
     textureMode: 0
     textureScale: {x: 1, y: 1}
     shadowBias: 0.5
