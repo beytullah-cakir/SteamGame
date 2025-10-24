@@ -31,14 +31,14 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: mixamo.com
+      name: Braced Hang To Crouch
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
       lastFrame: 34
       wrapMode: 0
       orientationOffsetY: 0
-      level: -0.85
+      level: -0.24
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0

@@ -12,6 +12,7 @@ TagManager:
   - ElevatorEnd
   - Swing
   - Grapple
+  - RoofLedge
   layers:
   - Default
   - TransparentFX
