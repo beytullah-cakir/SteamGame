@@ -10,9 +10,9 @@ public class RoofLedgeDetection : MonoBehaviour
     public int rayAmount = 10;
 
     public float rayLength = 0.5f;
-    public float rayOffset = 0.15f;    
-    public RaycastHit rayLedgeFwdHit;
-    public RaycastHit rayLedgeDwnHit;
+    public float rayOffset = 0.15f;
+    private RaycastHit rayLedgeFwdHit;
+    private RaycastHit rayLedgeDwnHit;
 
 
     private void Start()

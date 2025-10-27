@@ -28,8 +28,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 1.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5757249816151007364}
+  m_Children: []
   m_Father: {fileID: 190164627458036187}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1936203258856268581
@@ -279,7 +278,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8236436739173108637
 Transform:
   m_ObjectHideFlags: 0
@@ -383,37 +382,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1100451103073259876}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &4884128665456054174
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5757249816151007364}
-  m_Layer: 0
-  m_Name: BoxCenter
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5757249816151007364
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4884128665456054174}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0.7}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4704154631692638634}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6690036258620769372
 GameObject:
@@ -585,15 +553,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.39
+      value: 1.49
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.878
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 17.85
+      value: 19.221
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
       propertyPath: m_LocalRotation.w
@@ -683,9 +651,6 @@ PrefabInstance:
       addedObject: {fileID: 2790338010616092253}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4822855415148579511}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 3948448058945456121}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ca3138c09428b8e429d63030b74b258b, type: 3}
       insertIndex: -1
@@ -759,7 +724,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -820,23 +785,6 @@ MonoBehaviour:
   leftHand: {fileID: 0}
   isLadderClimbing: 0
   isClimbingEnd: 0
---- !u!114 &4822855415148579511
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 713900891300383585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f108a9627a143a4f913d1262e49c0a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RoofLedgeDetection
-  isRoofLedgeDetected: 0
-  rayAmount: 10
-  rayLength: 0.5
-  rayOffset: 0.15
-  isDropingFromRoof: 0
 --- !u!114 &3948448058945456121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -857,24 +805,25 @@ MonoBehaviour:
   ledgeLayer:
     serializedVersion: 2
     m_Bits: 8192
-  rayYHandCorrection: -0.2
+  rayYHandCorrection: -0.1
   rayZHandCorrection: -0.2
-  boxX: 0.1
-  boxY: 2
-  boxZ: 1
-  detectDistance: 0.5
-  checkX: 2
-  checkY: 2
-  isHopDown: 0
+  boxX: 0.2
+  boxY: 1
+  boxZ: 0.3
   playerCenter: {fileID: 4704154631692638634}
-  leftUp: 0.4
-  leftForward: 0.1
-  rightUp: 0.1
-  rightForward: 0.2
-  hopUpUp: -0.7
-  hopUpForward: -0.2
+  leftUp: 0.5
+  leftForward: 0
+  rightUp: 0.2
+  rightForward: 0.05
+  hopUpUp: -0.65
+  hopUpForward: 0.1
   hopDownUp: 0.3
   hopDownForward: -0.2
+  moveDistanceX: 1.5
+  moveDistanceY: 1.45
+  moveDistanceZ: 0.47
+  sphereRadius: 0.5
+  sphereOffset: {x: 0, y: 1.5, z: 0.47}
 --- !u!65 &5481114748202924629
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -910,15 +859,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShimmyController
   sphereRadius: 0.05
   sphereGap: 0.5
-  upPos: 2.2
+  upPos: 1.6
   forwardPos: 0.2
-  radius: 0.5
-  canMoveRight: 0
-  canMoveLeft: 0
-  canMove: 0
-  leftBtn: 0
-  rightBtn: 0
+  radius: 0.3
   ledgeMoveSpeed: 1
+  canMove: 0
+  climbPoint: {x: 0, y: 0, z: 0}
 --- !u!114 &4983312020736141074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1031,13 +977,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d779e689d1f3244ab6b7010d3948526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LedgeToRoofClimb
-  ledgeGroundLayer:
-    serializedVersion: 2
-    m_Bits: 8256
-  rayHeight: 2.4
   foundLedgeToRoofClimb: 0
-  climbPointObjPrefab: {fileID: 5894653717137106517, guid: 017bf0b1ab1fc114dba749415099f04b, type: 3}
-  climbPointObj: {fileID: 0}
 --- !u!114 &47797679777321551
 MonoBehaviour:
   m_ObjectHideFlags: 0

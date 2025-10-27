@@ -172,7 +172,7 @@ public class PlayerMovement : MonoBehaviour
     {
         anm.SetBool("IsGrounded", isGrounded && !freeze);
         anm.SetBool("IsRunning", isRunning && !freeze && !isObjectPushing);
-        anm.SetBool("IsJumping", !isGrounded && !freeze && !isClimbingEnd);
+        anm.SetBool("IsJumping", !isGrounded && !freeze && !isClimbingEnd && !playerClimb.isClimbing);
         anm.SetBool("IsWalking", isWalking && !freeze && !isObjectPushing);
         anm.SetBool("IsPush", isObjectPushing);
         anm.SetFloat("DirX", inputHorizontal);

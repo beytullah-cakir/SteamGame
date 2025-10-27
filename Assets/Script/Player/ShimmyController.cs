@@ -47,7 +47,7 @@ public class ShimmyController : MonoBehaviour
         center = transform.position + transform.forward * forwardPos + Vector3.up * upPos;
 
         // Kenar kontrolü
-        hits = Physics.OverlapSphere(center, radius, playerClimbScript.ledgeLayer);
+        hits = Physics.OverlapSphere(center, radius, playerClimbScript.ledgeLayer | playerClimbScript.originLedgeLayer);
 
         if (hits.Length > 0)
         {
@@ -85,7 +85,7 @@ public class ShimmyController : MonoBehaviour
         }
 
         // Sağ tarafı kontrol et
-        if (Physics.CheckSphere(climbPoint + transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
+        if (Physics.CheckSphere(climbPoint + transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer |  playerClimbScript.originLedgeLayer))
         {
             canMoveRight = true;
             rightBtn = Input.GetKey(KeyCode.D);
@@ -97,7 +97,7 @@ public class ShimmyController : MonoBehaviour
         }
 
         // Sol tarafı kontrol et
-        if (Physics.CheckSphere(climbPoint - transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
+        if (Physics.CheckSphere(climbPoint - transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer|  playerClimbScript.originLedgeLayer))
         {
             canMoveLeft = true;
             leftBtn = Input.GetKey(KeyCode.A);

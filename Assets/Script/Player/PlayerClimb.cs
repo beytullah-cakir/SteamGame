@@ -20,6 +20,7 @@ public class PlayerClimb : MonoBehaviour
     public bool isClimbing;
     public bool canGrabLedge;
     public LayerMask ledgeLayer;
+    public LayerMask originLedgeLayer;
 
     public float rayYHandCorrection;
     public float rayZHandCorrection;
@@ -36,12 +37,19 @@ public class PlayerClimb : MonoBehaviour
     public float rightUp, rightForward;
     public float hopUpUp, hopUpForward;
     public float hopDownUp, hopDownForward;
+    public float jumpUp, jumpForward;
 
     private bool isHopDown;
     private bool isHopping;
 
     public float moveDistanceX, moveDistanceY,moveDistanceZ;
     public float sphereRadius;
+    
+    public Vector3 sphereOffset;
+    public float maxDistance;
+    public float originMax;
+    private bool isIdleLedgeBusy;
+    private Quaternion targetRot;
 
     private void Start()
     {
@@ -59,7 +67,13 @@ public class PlayerClimb : MonoBehaviour
         CheckingMain();
         Inputs();
         MatchTargetToLedge();
-        UpdatePos();    
+        UpdatePos();   
+        
+        if (isClimbing && climbTarget != Vector3.zero)
+        {
+            transform.rotation = targetRot;
+        }
+
 
         
         if (isClimbing) HopMove();
@@ -71,7 +85,6 @@ public class PlayerClimb : MonoBehaviour
         if (isClimbing)
         {
             Vector3 inputDir = new Vector3(h*moveDistanceX, v*moveDistanceY,moveDistanceZ);
-        
             sphereOffset = inputDir != new Vector3(0,0,moveDistanceZ) ? inputDir : new Vector3(0, moveDistanceY, moveDistanceZ);  
         }
         else
@@ -115,11 +128,13 @@ public class PlayerClimb : MonoBehaviour
             {
                 if (canGrabLedge && climbTarget != Vector3.zero)
                 {
+                    
                     Vector3 lookDir = (climbTarget - transform.position).normalized;
+        
                     lookDir.y = 0;
                     if (lookDir != Vector3.zero)
                         transform.rotation = Quaternion.LookRotation(lookDir);
-
+                    
                     StartCoroutine(GrabLedge());
                 }
             }
@@ -130,20 +145,27 @@ public class PlayerClimb : MonoBehaviour
     }
 
 
-    public Vector3 sphereOffset;
+
+
+    
 
     private void CheckingMain()
     {
-        // Çakışan collider’ları kontrol et
-        Collider[] hits = Physics.OverlapSphere(playerCenter.position+sphereOffset, sphereRadius, ledgeLayer);
+        
+        if (isIdleLedgeBusy) return;
 
-        if (hits.Length > 0)
+        Vector3 rayOrigin = playerCenter.position + sphereOffset;
+        Vector3 origin = playerCenter.position;
+        RaycastHit originHit;
+        RaycastHit hit;
+
+       
+        if (Physics.SphereCast(rayOrigin, sphereRadius, transform.forward, out hit, maxDistance, ledgeLayer))
         {
             canGrabLedge = true;
-            ledge = hits[0];
-            climbTarget = ledge.ClosestPoint(transform.position);
+            climbTarget = hit.point;
+            targetRot = hit.transform.rotation;
             isHopDown = true;
-
             Debug.DrawLine(transform.position, climbTarget, Color.green);
         }
         else
@@ -151,7 +173,31 @@ public class PlayerClimb : MonoBehaviour
             canGrabLedge = false;
             isHopDown = false;
         }
+
+        
+        if (Physics.SphereCast(origin, sphereRadius, transform.forward, out originHit, originMax, originLedgeLayer) && !isClimbing)
+        {
+            climbTarget = originHit.point;
+            Debug.DrawLine(transform.position, climbTarget, Color.green);
+
+           
+            isIdleLedgeBusy = true;
+            StartCoroutine(IdleLedge());
+        }
     }
+
+
+    IEnumerator IdleLedge()
+    {
+        playerState = PlayerState.ClimbingState;
+        isClimbing = true;
+        animator.CrossFade("Hanging Idle", 0);
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+
+        
+        isIdleLedgeBusy = false;
+    }
+
 
 
     private void StateConditionsCheck()
@@ -171,7 +217,7 @@ public class PlayerClimb : MonoBehaviour
         }
     }
 
-    // 🔹 Tek fonksiyonla MatchTarget yönetimi
+   
     private void MatchTargetToLedge()
     {
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
@@ -195,6 +241,14 @@ public class PlayerClimb : MonoBehaviour
         if (IsInState(stateInfo, "Braced Hang Hop Down"))
             ApplyMatchTarget(Vector3.forward * hopDownForward + Vector3.up * hopDownUp, AvatarTarget.RightHand,
                 new Vector3(0, 1, 1));
+        if(IsInState(stateInfo, "Hanging Idle"))
+            animator.MatchTarget(
+                climbTarget + transform.TransformDirection(Vector3.forward * jumpForward + Vector3.up * jumpUp),
+                transform.rotation,
+                AvatarTarget.RightHand,
+                new MatchTargetWeightMask(new Vector3(0, 1, 1), 0),
+                0f, .1f
+            );
     }
 
     private bool IsInState(AnimatorStateInfo stateInfo, string stateName)
@@ -268,5 +322,7 @@ public class PlayerClimb : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(playerCenter.position+sphereOffset, sphereRadius);
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(playerCenter.position, sphereRadius);
     }
 }
