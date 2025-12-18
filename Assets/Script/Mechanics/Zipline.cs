@@ -48,7 +48,7 @@ public class Zipline : MonoBehaviour
         if (isZipping || targetZip == null) return;
         
         playerClimb=player.GetComponent<PlayerClimb>();
-        playerClimb.isZipped=true;
+        //playerClimb.isZipped=true;
         SetPLayerIK(player);
         localZip=GameObject.CreatePrimitive(PrimitiveType.Sphere);
         localZip.transform.position = zipTransform.position;
@@ -77,7 +77,7 @@ public class Zipline : MonoBehaviour
         
         player.transform.parent = null;
         Destroy(localZip);
-        playerClimb.isZipped=false;
+        //playerClimb.isZipped=false;
         isZipping = false;
         localZip = null;
 
