@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class CollectableObject : AInteractable
@@ -8,6 +7,9 @@ public class CollectableObject : AInteractable
     public override void Interact()
     {
         InventoryManager.Instance.AddItem(item);
+
         //Destroy(gameObject);
     }
+
+    
 }

@@ -1,9 +1,11 @@
+using StarterAssets;
 using System;
 using UnityEngine;
 
 public class ShimmyController : MonoBehaviour
 {
     private PlayerClimb playerClimbScript;
+    private StarterAssetsInputs _input;
 
     [Header("Detection Settings")] public float sphereRadius = 0.3f;
     public float sphereGap = 0.4f;
@@ -22,8 +24,6 @@ public class ShimmyController : MonoBehaviour
     private Collider[] hits;
     private Vector3 center;
 
-    private bool leftBtn;
-    private bool rightBtn;
     private float horizontalValue;
 
     LedgeToRoofClimb ledgeToRoofClimb;
@@ -32,6 +32,7 @@ public class ShimmyController : MonoBehaviour
     {
         playerClimbScript = GetComponent<PlayerClimb>();
         ledgeToRoofClimb = GetComponent<LedgeToRoofClimb>();
+        _input = GetComponent<StarterAssetsInputs>();
     }
 
     private void Update()
@@ -39,7 +40,7 @@ public class ShimmyController : MonoBehaviour
         // 🔹 Eğer oyuncu tırmanmıyorsa veya hopluyorsa, hiç işlem yapma
         if (!playerClimbScript.isClimbing || IsHopping())
         {
-            playerClimbScript.animator.SetFloat("LedgeSpeed", 0f, 0.05f, Time.deltaTime);
+            playerClimbScript.animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
             return;
         }
 
@@ -51,7 +52,8 @@ public class ShimmyController : MonoBehaviour
 
         if (hits.Length > 0)
         {
-            ledgeToRoofClimb.foundLedgeToRoofClimb = hits[0].CompareTag("RoofLedge");
+            if (ledgeToRoofClimb != null)
+                ledgeToRoofClimb.foundLedgeToRoofClimb = hits[0].CompareTag("RoofLedge");
             canMove = true;
             ledge = hits[0];
             climbPoint = ledge.ClosestPoint(transform.position);
@@ -71,7 +73,7 @@ public class ShimmyController : MonoBehaviour
         else
         {
             // Speed parametresini sıfırla
-            playerClimbScript.animator.SetFloat("Speed", 0f, 0.05f, Time.deltaTime);
+            playerClimbScript.animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
         }
     }
 
@@ -80,59 +82,50 @@ public class ShimmyController : MonoBehaviour
         // 🔹 Hop sırasında hareket etme
         if (IsHopping())
         {
-            playerClimbScript.animator.SetFloat("Speed", 0f, 0.05f, Time.deltaTime);
+            playerClimbScript.animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
             return;
         }
+
+        // Get Input from StarterAssetsInputs
+        float h = _input != null ? _input.move.x : Input.GetAxisRaw("Horizontal");
 
         // Sağ tarafı kontrol et
         if (Physics.CheckSphere(climbPoint + transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer ))
         {
             canMoveRight = true;
-            rightBtn = Input.GetKey(KeyCode.D);
         }
         else
         {
             canMoveRight = false;
-            rightBtn = false;
+            if (h > 0) h = 0; // Sağa gidemiyorsak inputu kes
         }
 
         // Sol tarafı kontrol et
         if (Physics.CheckSphere(climbPoint - transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
         {
             canMoveLeft = true;
-            leftBtn = Input.GetKey(KeyCode.A);
         }
         else
         {
             canMoveLeft = false;
-            leftBtn = false;
+            if (h < 0) h = 0; // Sola gidemiyorsak inputu kes
         }
 
-        // Yatay hareket yönü belirle
-        if (leftBtn && canMoveLeft)
-            horizontalValue = -1;
-        else if (rightBtn && canMoveRight)
-            horizontalValue = 1;
-        else
-            horizontalValue = 0;
+        horizontalValue = h;
 
         // Animator ve pozisyon
-        playerClimbScript.animator.SetFloat("Speed", horizontalValue, 0.05f, Time.deltaTime);
-        transform.position += transform.right * horizontalValue * ledgeMoveSpeed * Time.deltaTime;
+        playerClimbScript.animator.SetFloat("Shimmy", horizontalValue, 0.05f, Time.deltaTime);
+        
+        if (Mathf.Abs(horizontalValue) > 0.1f)
+        {
+            transform.position += transform.right * horizontalValue * ledgeMoveSpeed * Time.deltaTime;
+        }
     }
 
     // 🔹 PlayerClimb içindeki "isHopping" kontrolü
     private bool IsHopping()
     {
-        // Eğer PlayerClimb'te isHopping public değilse burayı public yap
-        var field = playerClimbScript.GetType().GetField("isHopping",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (field != null)
-        {
-            return (bool)field.GetValue(playerClimbScript);
-        }
-
-        return false;
+        return playerClimbScript.isHopping;
     }
 
     private void OnDrawGizmos()
