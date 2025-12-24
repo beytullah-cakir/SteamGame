@@ -42,6 +42,14 @@ public class PlayerClimb : MonoBehaviour
     public float shimmyLedgeRadius = 0.1f;
     public float shimmyLedgeMoveSpeed = 0.5f;
 
+    [Header("Animation Offsets (X: Side, Y: Up, Z: Forward)")]
+    public Vector3 idleToHangOffset;
+    public Vector3 hangingIdleOffset;
+    public Vector3 hopUpOffset;
+    public Vector3 hopRightOffset;
+    public Vector3 hopLeftOffset;
+    public Vector3 hopDownOffset;
+
     private Vector3 climbTarget;
     private Vector3 currNormal;
     private Quaternion targetRot;
@@ -289,13 +297,16 @@ public class PlayerClimb : MonoBehaviour
         return stateInfo.IsName(stateName) && !animator.IsInTransition(0);
     }
 
-    private void ApplyMatchTarget(AvatarTarget target, Vector3 maskWeights, float start, float end)
+    private void ApplyMatchTarget(AvatarTarget target, Vector3 maskWeights, float start, float end, Vector3 offset)
     {
         // Safety check
         if (animator.isMatchingTarget) return;
 
+        // Apply offset relative to the target rotation
+        Vector3 targetPos = climbTarget + (targetRot * offset);
+
         animator.MatchTarget(
-            climbTarget,
+            targetPos,
             targetRot,
             target,
             new MatchTargetWeightMask(maskWeights, 0),
@@ -311,23 +322,22 @@ public class PlayerClimb : MonoBehaviour
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
         if (IsInState(stateInfo, "Idle To Braced Hang"))
-            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.36f, 0.57f);
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.36f, 0.57f, idleToHangOffset);
 
-        if (IsInState(stateInfo, "Hanging Idle"))
-            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f);
+        //if (IsInState(stateInfo, "Hanging Idle"))
+        //    ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f, hangingIdleOffset);
 
         if (IsInState(stateInfo, "Braced Hang Hop Up"))
-            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 1), 0.1f, 0.9f);
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f, hopUpOffset);
 
         if (IsInState(stateInfo, "Braced Hang Hop Right"))
-            ApplyMatchTarget(AvatarTarget.LeftHand, new Vector3(1, 1, 1), 0.1f, 0.9f);
+            ApplyMatchTarget(AvatarTarget.LeftHand, new Vector3(1, 1, 1), 0.1f, 0.9f, hopRightOffset);
 
         if (IsInState(stateInfo, "Braced Hang Hop Left"))
-            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 0), 0.1f, 0.9f);
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 1), 0.33f, 0.85f, hopLeftOffset);
 
         if (IsInState(stateInfo, "Braced Hang Hop Down"))
-            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f);
-
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f, hopDownOffset);
     }
 
     IEnumerator GrabLedge()
@@ -341,7 +351,7 @@ public class PlayerClimb : MonoBehaviour
 
         transform.rotation = targetRot;
 
-        animator.CrossFade("Idle To Braced Hang", 0.1f);
+        animator.Play("Idle To Braced Hang");
 
         yield return new WaitForSeconds(0.5f); // Reduced wait time for responsiveness
 
@@ -350,7 +360,7 @@ public class PlayerClimb : MonoBehaviour
 
     public IEnumerator DropLedge()
     {
-        animator.CrossFade("Braced To Drop", 0.1f);
+        animator.Play("Braced To Drop");
         yield return new WaitForSeconds(0.5f);
 
         _currentLedge = null;
@@ -363,8 +373,8 @@ public class PlayerClimb : MonoBehaviour
     IEnumerator HopUp()
     {
         isHopping = true;
-        animator.CrossFade("Braced Hang Hop Up", 0.1f);
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+        animator.Play("Braced Hang Hop Up");
+        yield return new WaitForSeconds(1);
         _currentLedge = _detectedLedge; // Atladığımız yeni kenarı aktif kenar yap
         isHopping = false;
     }
@@ -372,8 +382,8 @@ public class PlayerClimb : MonoBehaviour
     IEnumerator HopRight()
     {
         isHopping = true;
-        animator.CrossFade("Braced Hang Hop Right", 0.1f);
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+        animator.Play("Braced Hang Hop Right");
+        yield return new WaitForSeconds(1);
         _currentLedge = _detectedLedge;
         isHopping = false;
     }
@@ -381,8 +391,8 @@ public class PlayerClimb : MonoBehaviour
     IEnumerator HopLeft()
     {
         isHopping = true;
-        animator.CrossFade("Braced Hang Hop Left", 0.1f);
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+        animator.Play("Braced Hang Hop Left");
+        yield return new WaitForSeconds(1);
         _currentLedge = _detectedLedge;
         isHopping = false;
     }
@@ -390,8 +400,8 @@ public class PlayerClimb : MonoBehaviour
     IEnumerator HopDown()
     {
         isHopping = true;
-        animator.CrossFade("Braced Hang Hop Down", 0.2f);
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+        animator.Play("Braced Hang Hop Down");
+        yield return new WaitForSeconds(1);
         _currentLedge = _detectedLedge;
         isHopping = false;
     }
