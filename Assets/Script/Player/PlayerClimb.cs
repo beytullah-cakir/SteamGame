@@ -34,17 +34,13 @@ public class PlayerClimb : MonoBehaviour
     public float maxDistance = 0.5f;
     public float capsuleLength = 0.7f;
 
-    [Header("Animation Match Target Offsets")]
-    public float rayYHandCorrection = 0.4f;
-    public float rayZHandCorrection = 0.2f;
-
-    [Header("Hop Values")]
-    public float leftUp = .4f;
-    public float leftForward = .1f;
-    public float rightUp, rightForward;
-    public float hopUpUp, hopUpForward;
-    public float hopDownUp, hopDownForward;
-    public float jumpUp, jumpForward;
+    [Header("Shimmy Settings")]
+    public float shimmySphereGap = 0.4f;
+    public float shimmyUpPos = 1.6f;
+    public float shimmyForwardPos = 1.0f;
+    public float shimmyRadius = 0.5f;
+    public float shimmyLedgeRadius = 0.1f;
+    public float shimmyLedgeMoveSpeed = 0.5f;
 
     private Vector3 climbTarget;
     private Vector3 currNormal;
@@ -55,12 +51,18 @@ public class PlayerClimb : MonoBehaviour
     public bool isHopping;
     private bool isIdleLedgeBusy;
 
+    private LedgeToRoofClimb ledgeToRoofClimb;
+    private Vector3 shimmyCenter;
+    private bool canMoveRight, canMoveLeft, canMove;
+    private Vector3 shimmyPoint;
+
     private void Start()
     {
         _playerController = GetComponent<ThirdPersonController>();
         _rb = GetComponent<Rigidbody>();
         _input = GetComponent<StarterAssetsInputs>();
         roofLedgeDetection = GetComponent<RoofLedgeDetection>();
+        ledgeToRoofClimb = GetComponent<LedgeToRoofClimb>();
         animator = GetComponent<Animator>();
     }
 
@@ -69,24 +71,33 @@ public class PlayerClimb : MonoBehaviour
         if (isZipped || animator == null) return;
 
         StateConditionsCheck();
-        
+
         Inputs();
-        
+
         CheckingMain();
+
+        if (isClimbing && !isHopping)
+        {
+            ShimmyLogic();
+        }
+        else if (animator != null)
+        {
+            animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
+        }
 
         MatchTargetToLedge();
 
         if (interactUI != null)
             interactUI.SetActive(canGrabLedge && !isClimbing);
     }
-    
+
     private void CheckingMain()
     {
         if (isIdleLedgeBusy) return;
 
         // Kapsülün sabit başlangıç noktası (Merkez)
         Vector3 baseOrigin = transform.position + Vector3.up * sphereOffset;
-        
+
         // point1 SABİT kalıyor
         Vector3 point1 = baseOrigin;
         Vector3 point2 = baseOrigin;
@@ -131,15 +142,15 @@ public class PlayerClimb : MonoBehaviour
             break;
         }
 
-        if(foundValidLedge)
+        if (foundValidLedge)
         {
             _detectedLedge = bestHit.collider;
             canGrabLedge = true;
-            
+
             climbTarget = bestHit.point;
             currNormal = bestHit.normal;
             targetRot = Quaternion.LookRotation(-bestHit.normal);
-            
+
             if (interactUI != null && !isClimbing)
             {
                 Vector3 uiPos = bestHit.point + Vector3.up * 0.5f;
@@ -151,10 +162,58 @@ public class PlayerClimb : MonoBehaviour
             _detectedLedge = null;
             canGrabLedge = false;
         }
-        
+
         Debug.DrawLine(baseOrigin, baseOrigin + (direction * maxDistance), canGrabLedge ? Color.green : Color.black);
     }
-    
+
+    private void ShimmyLogic()
+    {
+        // Karakterin önündeki ve yukarıdaki nokta (Shimmy tespiti için)
+        shimmyCenter = transform.position + transform.forward * shimmyForwardPos + Vector3.up * shimmyUpPos;
+
+        // Kenar kontrolü
+        Collider[] hits = Physics.OverlapSphere(shimmyCenter, shimmyRadius, ledgeLayer);
+
+        if (hits.Length > 0)
+        {
+            if (ledgeToRoofClimb != null)
+                ledgeToRoofClimb.foundLedgeToRoofClimb = hits[0].CompareTag("RoofLedge");
+
+            canMove = true;
+            shimmyPoint = hits[0].ClosestPoint(transform.position);
+        }
+        else
+        {
+            canMove = false;
+            canMoveLeft = false;
+            canMoveRight = false;
+            shimmyPoint = Vector3.zero;
+        }
+
+        if (canMove)
+        {
+            // Sağ tarafı kontrol et
+            canMoveRight = Physics.CheckSphere(shimmyPoint + transform.right * shimmySphereGap, sphereRadius, ledgeLayer);
+            if (!canMoveRight && h > 0.1f) h = 0;
+
+            // Sol tarafı kontrol et
+            canMoveLeft = Physics.CheckSphere(shimmyPoint - transform.right * shimmySphereGap, sphereRadius, ledgeLayer);
+            if (!canMoveLeft && h < -0.1f) h = 0;
+
+            // Animator ve pozisyon güncelleme
+            animator.SetFloat("Shimmy", h, 0.05f, Time.deltaTime);
+
+            if (Mathf.Abs(h) > 0.1f)
+            {
+                transform.position += transform.right * h * shimmyLedgeMoveSpeed * Time.deltaTime;
+            }
+        }
+        else
+        {
+            animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
+        }
+    }
+
 
     private void Inputs()
     {
@@ -174,7 +233,7 @@ public class PlayerClimb : MonoBehaviour
         }
 
         // Tırmanışa giriş veya tırmanırken zıplama (Space / Jump)
-        if (Input.GetKeyDown(KeyCode.Space)) 
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             // Girişi hemen tüket
             if (_input != null) _input.jump = false;
@@ -190,38 +249,38 @@ public class PlayerClimb : MonoBehaviour
             }
             else if (isClimbing && canGrabLedge)
             {
-                 // Input yönüne göre uygun zıplama animasyonunu tetikle
-                 if (v > 0.3f) StartCoroutine(HopUp());
-                 else if (v < -0.3f) StartCoroutine(HopDown());
-                 else if (h > 0.3f) StartCoroutine(HopRight());
-                 else if (h < -0.3f) StartCoroutine(HopLeft());
-                 else StartCoroutine(HopUp()); // Varsayılan yukarı zıpla
+                // Input yönüne göre uygun zıplama animasyonunu tetikle
+                if (v > 0.3f) StartCoroutine(HopUp());
+                else if (v < -0.3f) StartCoroutine(HopDown());
+                else if (h > 0.3f) StartCoroutine(HopRight());
+                else if (h < -0.3f) StartCoroutine(HopLeft());
+                else StartCoroutine(HopUp()); // Varsayılan yukarı zıpla
             }
         }
-        
+
         // Bırakma kontrolü (C tuşu veya Aşağı + Space)
         if (Input.GetKeyDown(KeyCode.C) && isClimbing)
             StartCoroutine(DropLedge());
     }
 
-   
+
 
     private void StateConditionsCheck()
     {
         if (_playerController == null || _rb == null) return;
-        
+
         if (playerState == PlayerState.NormalState)
         {
-            _playerController.enabled = true;
+            _playerController.freezeMovement = false;
             _rb.isKinematic = false;
             animator.applyRootMotion = false;
         }
         else if (playerState == PlayerState.ClimbingState)
         {
-             _playerController.enabled = false;
-            
+            _playerController.freezeMovement = true;
+
             _rb.isKinematic = true;
-            
+
             animator.applyRootMotion = true;
         }
     }
@@ -230,17 +289,18 @@ public class PlayerClimb : MonoBehaviour
         return stateInfo.IsName(stateName) && !animator.IsInTransition(0);
     }
 
-    private void ApplyMatchTarget(Vector3 offset, AvatarTarget target, Vector3 maskWeights)
+    private void ApplyMatchTarget(AvatarTarget target, Vector3 maskWeights, float start, float end)
     {
         // Safety check
         if (animator.isMatchingTarget) return;
 
         animator.MatchTarget(
-            climbTarget + transform.TransformDirection(offset),
+            climbTarget,
             targetRot,
             target,
             new MatchTargetWeightMask(maskWeights, 0),
-            0.36f, 0.57f
+            start,
+            end
         );
     }
 
@@ -251,22 +311,22 @@ public class PlayerClimb : MonoBehaviour
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
         if (IsInState(stateInfo, "Idle To Braced Hang"))
-            ApplyMatchTarget(Vector3.forward * rayZHandCorrection + Vector3.up * rayYHandCorrection, AvatarTarget.RightHand, new Vector3(0, 1, 1));
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.36f, 0.57f);
 
         if (IsInState(stateInfo, "Hanging Idle"))
-            ApplyMatchTarget(Vector3.forward * rayZHandCorrection + Vector3.up * rayYHandCorrection, AvatarTarget.RightHand, new Vector3(0, 1, 1));
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f);
 
         if (IsInState(stateInfo, "Braced Hang Hop Up"))
-             ApplyMatchTarget(Vector3.forward * hopUpForward + Vector3.up * hopUpUp, AvatarTarget.RightHand, new Vector3(1, 1, 1));
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 1), 0.1f, 0.9f);
 
         if (IsInState(stateInfo, "Braced Hang Hop Right"))
-            ApplyMatchTarget(Vector3.forward * rightForward + Vector3.up * rightUp, AvatarTarget.LeftHand, new Vector3(1, 1, 1));
+            ApplyMatchTarget(AvatarTarget.LeftHand, new Vector3(1, 1, 1), 0.1f, 0.9f);
 
         if (IsInState(stateInfo, "Braced Hang Hop Left"))
-             ApplyMatchTarget(Vector3.forward * rayZHandCorrection + Vector3.up * rayYHandCorrection, AvatarTarget.RightHand, new Vector3(1, 1, 0));
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 0), 0.1f, 0.9f);
 
         if (IsInState(stateInfo, "Braced Hang Hop Down"))
-             ApplyMatchTarget(Vector3.forward * hopDownForward + Vector3.up * hopDownUp, AvatarTarget.RightHand, new Vector3(0, 1, 1));
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f);
 
     }
 
@@ -275,7 +335,7 @@ public class PlayerClimb : MonoBehaviour
         playerState = PlayerState.ClimbingState;
         isHopping = true;
         isClimbing = true;
-        
+
         // Şu an tutunduğumuz collider'ı kaydet
         _currentLedge = _detectedLedge;
 
@@ -293,7 +353,7 @@ public class PlayerClimb : MonoBehaviour
         animator.CrossFade("Braced To Drop", 0.1f);
         yield return new WaitForSeconds(0.5f);
 
-        _currentLedge = null; 
+        _currentLedge = null;
         _detectedLedge = null;
         playerState = PlayerState.NormalState;
         isClimbing = false;
@@ -304,7 +364,7 @@ public class PlayerClimb : MonoBehaviour
     {
         isHopping = true;
         animator.CrossFade("Braced Hang Hop Up", 0.1f);
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length); 
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
         _currentLedge = _detectedLedge; // Atladığımız yeni kenarı aktif kenar yap
         isHopping = false;
     }
@@ -366,7 +426,7 @@ public class PlayerClimb : MonoBehaviour
 
         Gizmos.DrawWireSphere(p1, sphereRadius);
         Gizmos.DrawWireSphere(p2, sphereRadius);
-        
+
         Vector3 spine = p2 - p1;
         if (spine.sqrMagnitude > 0.001f)
         {
@@ -391,5 +451,20 @@ public class PlayerClimb : MonoBehaviour
             Gizmos.DrawSphere(climbTarget, 0.05f);
             Gizmos.DrawRay(climbTarget, currNormal * 0.4f);
         }
+
+        // Shimmy Gizmos
+        if (isClimbing)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(shimmyCenter, shimmyRadius);
+
+            if (canMove)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawSphere(shimmyPoint + transform.right * shimmySphereGap, shimmyLedgeRadius);
+                Gizmos.DrawSphere(shimmyPoint - transform.right * shimmySphereGap, shimmyLedgeRadius);
+            }
+        }
     }
 }
+

@@ -107,6 +107,8 @@ namespace StarterAssets
         private PlayerClimb _playerClimb;
         private GameObject _mainCamera;
 
+        [HideInInspector] public bool freezeMovement;
+
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
@@ -163,9 +165,12 @@ namespace StarterAssets
         {
             _hasAnimator = TryGetComponent(out _animator);
 
-            JumpAndGravity();
-            GroundedCheck();
-            Move();
+            if (!freezeMovement)
+            {
+                JumpAndGravity();
+                GroundedCheck();
+                Move();
+            }
         }
 
         private void LateUpdate()
