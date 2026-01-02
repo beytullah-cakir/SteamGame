@@ -34,7 +34,7 @@ namespace StarterAssets
 
         [Space(10)]
         [Tooltip("The height the player can jump")]
-        public float JumpHeight = 1.2f;
+        public float JumpForce = 1.2f;
 
         [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
         public float Gravity = -15.0f;
@@ -169,9 +169,17 @@ namespace StarterAssets
             {
                 JumpAndGravity();
                 GroundedCheck();
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            if (!freezeMovement)
+            {
                 Move();
             }
         }
+
 
         private void LateUpdate()
         {
@@ -281,7 +289,7 @@ namespace StarterAssets
 
             // Hareketi Uygula - Sadece yatay (X, Z) düzlemde hareket ettiriyoruz
             Vector3 horizontalMove = targetDirection.normalized * (_speed * Time.deltaTime);
-            transform.Translate(horizontalMove, Space.World);
+            _rb.MovePosition(_rb.position + targetDirection.normalized * _speed * Time.fixedDeltaTime);
 
             // update animator if using character
             if (_hasAnimator)
@@ -309,9 +317,9 @@ namespace StarterAssets
 
                 if (_input.jump && _jumpTimeoutDelta <= 0.0f && canNormalJump)
                 {
-                    // Rigidbody'ye yukarı yönlü anlık kuvvet (Impulse) uygula
-                    float jumpForce = Mathf.Sqrt(JumpHeight * -2f * Physics.gravity.y);
-                    _rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                    
+                    
+                    _rb.AddForce(Vector3.up * JumpForce, ForceMode.Impulse);
 
                     if (_hasAnimator)
                     {

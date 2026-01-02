@@ -5,137 +5,110 @@ using UnityEngine;
 public class ShimmyController : MonoBehaviour
 {
     private PlayerClimb playerClimbScript;
-    private StarterAssetsInputs _input;
+    private ThirdPersonInputSystem _inputSystem;
 
-    [Header("Detection Settings")] public float sphereRadius = 0.3f;
-    public float sphereGap = 0.4f;
-    public float upPos = 1.6f;
-    public float forwardPos = 1.0f;
-    public float radius = 0.5f;
+    [Header("Detection Settings")]
+    public float shimmySphereGap = 0.4f;
+    public float shimmyUpPos = 1.6f;
+    public float shimmyForwardPos = 1.0f;
+    public float shimmyRadius = 0.5f;
+    public float shimmyLedgeRadius = 0.1f;
+    private Vector3 center;
 
-    [Header("Movement Settings")] public float ledgeMoveSpeed = 0.5f;
+    [Header("Movement Settings")] public float shimmySpeed = 2.0f;
 
-    private bool canMoveRight;
-    private bool canMoveLeft;
+    public bool canMoveRight;
+    public bool canMoveLeft;
     public bool canMove;
 
     [HideInInspector] public Vector3 climbPoint;
     private Collider ledge;
     private Collider[] hits;
-    private Vector3 center;
+    public bool isCrouchLedge;
+    public string crouchLedge;
 
-    private float horizontalValue;
+    private void Awake()
+    {
+        _inputSystem = new ThirdPersonInputSystem();
+    }
 
-    LedgeToRoofClimb ledgeToRoofClimb;
+    private void OnEnable() => _inputSystem.Enable();
+    private void OnDisable() => _inputSystem.Disable();
 
     private void Start()
     {
         playerClimbScript = GetComponent<PlayerClimb>();
-        ledgeToRoofClimb = GetComponent<LedgeToRoofClimb>();
-        _input = GetComponent<StarterAssetsInputs>();
     }
 
     private void Update()
     {
-        // 🔹 Eğer oyuncu tırmanmıyorsa veya hopluyorsa, hiç işlem yapma
-        if (!playerClimbScript.isClimbing || IsHopping())
+        if (!playerClimbScript.isClimbing || playerClimbScript.isHopping)
         {
             playerClimbScript.animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
             return;
         }
 
-        // Karakterin önündeki ve yukarıdaki nokta
-        center = transform.position + transform.forward * forwardPos + Vector3.up * upPos;
+       
+        center = transform.position + transform.forward * shimmyForwardPos + Vector3.up * shimmyUpPos;
 
-        // Kenar kontrolü
-        hits = Physics.OverlapSphere(center, radius, playerClimbScript.ledgeLayer);
+        
+        hits = Physics.OverlapSphere(center, shimmyRadius, playerClimbScript.ledgeLayer);
+
+
+        
 
         if (hits.Length > 0)
         {
-            if (ledgeToRoofClimb != null)
-                ledgeToRoofClimb.foundLedgeToRoofClimb = hits[0].CompareTag("RoofLedge");
             canMove = true;
             ledge = hits[0];
             climbPoint = ledge.ClosestPoint(transform.position);
+            isCrouchLedge = hits[0].transform.CompareTag(crouchLedge);
         }
         else
         {
-            // ❗ Hiçbir kenar yok → hareket kapalı
             canMove = false;
-            canMoveLeft = false;
-            canMoveRight = false;
             climbPoint = Vector3.zero;
+            isCrouchLedge= false;
         }
 
-        // Eğer kenar var ise hareket kontrolünü yap
-        if (canMove)
-            CheckSphere();
-        else
-        {
-            // Speed parametresini sıfırla
-            playerClimbScript.animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
-        }
-    }
-
-    private void CheckSphere()
-    {
-        // 🔹 Hop sırasında hareket etme
-        if (IsHopping())
-        {
-            playerClimbScript.animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
-            return;
-        }
-
-        // Get Input from StarterAssetsInputs
-        float h = _input != null ? _input.move.x : Input.GetAxisRaw("Horizontal");
-
-        // Sağ tarafı kontrol et
-        if (Physics.CheckSphere(climbPoint + transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer ))
-        {
-            canMoveRight = true;
-        }
-        else
-        {
-            canMoveRight = false;
-            if (h > 0) h = 0; // Sağa gidemiyorsak inputu kes
-        }
-
-        // Sol tarafı kontrol et
-        if (Physics.CheckSphere(climbPoint - transform.right * sphereGap, sphereRadius, playerClimbScript.ledgeLayer))
-        {
-            canMoveLeft = true;
-        }
-        else
-        {
-            canMoveLeft = false;
-            if (h < 0) h = 0; // Sola gidemiyorsak inputu kes
-        }
-
-        horizontalValue = h;
-
-        // Animator ve pozisyon
-        playerClimbScript.animator.SetFloat("Shimmy", horizontalValue, 0.05f, Time.deltaTime);
         
-        if (Mathf.Abs(horizontalValue) > 0.1f)
-        {
-            transform.position += transform.right * horizontalValue * ledgeMoveSpeed * Time.deltaTime;
-        }
+        if (canMove) CheckMoveSphere();
+        else playerClimbScript.animator.SetFloat("Shimmy", 0f, 0.05f, Time.deltaTime);
+
+
     }
 
-    // 🔹 PlayerClimb içindeki "isHopping" kontrolü
-    private bool IsHopping()
+    private void CheckMoveSphere()
     {
-        return playerClimbScript.isHopping;
+               
+        canMoveRight = Physics.CheckSphere(climbPoint + transform.right * shimmySphereGap, shimmyLedgeRadius, playerClimbScript.ledgeLayer);
+        canMoveLeft=Physics.CheckSphere(climbPoint - transform.right * shimmySphereGap, shimmyLedgeRadius, playerClimbScript.ledgeLayer);
+        Move();
     }
+
+    void Move()
+    {
+        Vector2 moveInput = _inputSystem.Player.Move.ReadValue<Vector2>();
+        float h = moveInput.x;
+        if (!canMoveLeft && h < -0.1f) h = 0f;
+        if (!canMoveRight && h > 0.1f) h = 0f;
+        playerClimbScript.animator.SetFloat("Shimmy", h, 0.05f, Time.deltaTime);
+        if (Mathf.Abs(h) > 0.1f) transform.Translate(Vector3.right * h * shimmySpeed * Time.deltaTime);
+    }
+
+    
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(center, radius);
+        Gizmos.DrawWireSphere(center, shimmyRadius);
 
-        if (hits is not { Length: > 0 }) return;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(climbPoint + transform.right * sphereGap, sphereRadius);
-        Gizmos.DrawSphere(climbPoint - transform.right * sphereGap, sphereRadius);
+        if (canMove)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(climbPoint + transform.right * shimmySphereGap, shimmyLedgeRadius);
+            Gizmos.DrawSphere(climbPoint - transform.right * shimmySphereGap, shimmyLedgeRadius);
+        }
+        
     }
 }
