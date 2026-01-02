@@ -10,7 +10,7 @@ public class HookManager : MonoBehaviour
     public GameObject indicator;
     protected RaycastHit grappleHit,swingHit;
     protected Rigidbody rb;
-    protected PlayerMovement pm;
+    //protected PlayerMovement pm;
     public bool isGrappling;
     public bool isSwinging;
     
@@ -47,7 +47,7 @@ public class HookManager : MonoBehaviour
     protected void Start()
     {
         rb = GetComponent<Rigidbody>();
-        pm = GetComponent<PlayerMovement>();
+        //pm = GetComponent<PlayerMovement>();
     }
 
     void ChechPoint()
@@ -76,7 +76,7 @@ public class HookManager : MonoBehaviour
         if (grapplingCdTimer > 0) return;
         isGrappling = true;
         StopSwing();
-        pm.freeze = true;
+        //pm.freeze = true;
         targetPoint = grappleHit.point; 
         Vector3 lookDirection = targetPoint - transform.position;
         lookDirection.y = 0;         
@@ -103,7 +103,7 @@ public class HookManager : MonoBehaviour
         Vector3 velocityToSet = CalculateJumpVelocity(transform.position, targetPosition + offset, trajectoryHeight);
         rb.linearVelocity = velocityToSet;
         isGrappling = false;
-        pm.freeze = false;
+        //pm.freeze = false;
     }
     public Vector3 CalculateJumpVelocity(Vector3 startPoint, Vector3 endPoint, float trajectoryHeight)
     {

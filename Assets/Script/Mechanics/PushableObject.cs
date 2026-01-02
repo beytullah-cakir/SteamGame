@@ -6,7 +6,7 @@ public class PushableObject : MonoBehaviour
     public bool isPushing;
     private Rigidbody rb;
     public float playerTargetOffset;
-    private PlayerMovement playerMovement;
+    //private PlayerMovement playerMovement;
     private GameObject player;
     public bool isPlayer;
     private void Start()
@@ -43,12 +43,12 @@ public class PushableObject : MonoBehaviour
 
     private void PushObejct()
     {
-        playerMovement = player.transform.GetComponent<PlayerMovement>();
+        //playerMovement = player.transform.GetComponent<PlayerMovement>();
 
         if (!isPushing) // Push başlat
         {
             isPushing = true;
-            playerMovement.isObjectPushing = true;
+            //playerMovement.isObjectPushing = true;
             player.transform.rotation = transform.rotation;
             player.transform.position=new Vector3(transform.position.x, player.transform.position.y, transform.position.z+playerTargetOffset);
             
@@ -57,7 +57,7 @@ public class PushableObject : MonoBehaviour
         else // Push bırak
         {
             isPushing = false;
-            playerMovement.isObjectPushing = false;
+            //playerMovement.isObjectPushing = false;
             transform.SetParent(null);
         }
     }

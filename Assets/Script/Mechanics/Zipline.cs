@@ -59,7 +59,7 @@ public class Zipline : MonoBehaviour
         player.GetComponent<Rigidbody>().useGravity = false;
         player.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         player.GetComponent<Rigidbody>().isKinematic = true;
-        player.GetComponent<PlayerMovement>().enabled = false;
+        //player.GetComponent<PlayerMovement>().enabled = false;
         
         player.transform.parent=localZip.transform;
         isZipping = true;
@@ -73,7 +73,7 @@ public class Zipline : MonoBehaviour
         player.GetComponent<Rigidbody>().useGravity = true;
         player.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         player.GetComponent<Rigidbody>().isKinematic = false;
-        player.GetComponent<PlayerMovement>().enabled = true;
+        //player.GetComponent<PlayerMovement>().enabled = true;
         
         player.transform.parent = null;
         Destroy(localZip);
@@ -85,8 +85,8 @@ public class Zipline : MonoBehaviour
 
     void SetPLayerIK(GameObject player)
     {
-        rightHand = player.GetComponent<PlayerMovement>().rightHand;
-        leftHand= player.GetComponent<PlayerMovement>().leftHand;
+        //rightHand = player.GetComponent<PlayerMovement>().rightHand;
+        //leftHand= player.GetComponent<PlayerMovement>().leftHand;
         leftHand.weight = 1;
         rightHand.weight = 1;
         rightHand.data.target.position = zipTransform.position;
