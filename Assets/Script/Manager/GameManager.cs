@@ -1,22 +1,27 @@
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance;
+
     public GameObject inventoryPanel;
     public bool inventoryOpen;
-    public static GameManager instance;
+
+    [Header("Indicator")]
+    public GameObject indicator;
+
+    private Camera mainCam;
 
     private void Awake()
     {
-        instance = this;
+        Instance = this;
     }
 
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        mainCam = Camera.main;
     }
 
     private void Update()
@@ -27,22 +32,33 @@ public class GameManager : MonoBehaviour
 
     public void OpenMenuScene()
     {
-        if (!inventoryOpen)
+        inventoryOpen = !inventoryOpen;
+        inventoryPanel.SetActive(inventoryOpen);
+
+        Cursor.lockState = inventoryOpen ? CursorLockMode.Confined : CursorLockMode.Locked;
+        Cursor.visible = inventoryOpen;
+
+        Time.timeScale = inventoryOpen ? 0f : 1f;
+    }
+    public void UpdateIndicator(bool show, Transform target)
+    {
+        if (!show || target == null || inventoryOpen)
         {
-            inventoryOpen = !inventoryOpen;
-            inventoryPanel.SetActive(inventoryOpen);
-            Cursor.lockState = CursorLockMode.Confined;
-            Cursor.visible = true;
-            Time.timeScale = 0f;
-        }
-        else
-        {
-            inventoryOpen = !inventoryOpen;
-            inventoryPanel.SetActive(inventoryOpen);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            Time.timeScale = 1f;
+            indicator.SetActive(false);
+            return;
         }
 
+        Vector3 screenPos = mainCam.WorldToScreenPoint(target.position);
+
+        // Kamera arkasýndaysa gizle
+        if (screenPos.z < 0)
+        {
+            indicator.SetActive(false);
+            return;
+        }
+
+        indicator.SetActive(true);
+        indicator.transform.position = screenPos;
     }
+
 }
