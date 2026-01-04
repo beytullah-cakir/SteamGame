@@ -868,6 +868,7 @@ Transform:
   - {fileID: 7925579739242845803}
   - {fileID: 1498565296847722993}
   - {fileID: 3224653407583461464}
+  - {fileID: 4437378427665630070}
   m_Father: {fileID: 5759044117534989463}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3278758522008103151
@@ -1244,12 +1245,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4509033794107109540}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.47697046, y: 0.5228801, z: -0.5306499, w: -0.46637574}
+  m_LocalPosition: {x: 0.05223546, y: -0.5342668, z: 1.2675877}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5258547668482503212}
+  m_Father: {fileID: 3883779038300408634}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6212894903067443660
 MonoBehaviour:
@@ -1346,7 +1347,6 @@ Transform:
   - {fileID: 8740785356742525685}
   - {fileID: 6462460902008774809}
   - {fileID: 1857350757978037240}
-  - {fileID: 4437378427665630070}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &188242660409283575
@@ -1608,6 +1608,7 @@ MonoBehaviour:
   LockCameraPosition: 0
   isGrounded: 0
   freezeMovement: 0
+  _animator: {fileID: 0}
 --- !u!114 &2023533715536725537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1624,20 +1625,12 @@ MonoBehaviour:
   grappleLayer:
     serializedVersion: 2
     m_Bits: 128
-  swingLayer:
-    serializedVersion: 2
-    m_Bits: 0
   maxDistance: 50
-  isGrappling: 0
-  isSwinging: 0
-  grappleDelayTime: 1
-  overshootYAxis: 2
-  jointSpring: 4.5
-  jointDamper: 7
-  jointMassScale: 4.5
-  horizontalThrustForce: 0
-  forwardThrustForce: 0
-  extendCableSpeed: 0
+  rb: {fileID: 0}
+  canGrapple: 0
+  grappleSpeed: 0
+  grappleOffset: {x: 0, y: 0, z: 0}
+  isMovingToGrapplePoint: 0
 --- !u!1 &4909022774134885962
 GameObject:
   m_ObjectHideFlags: 0

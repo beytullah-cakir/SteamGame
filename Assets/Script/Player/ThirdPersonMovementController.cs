@@ -51,7 +51,7 @@ namespace StarterAssets
 
         // References
         private Rigidbody _rb;
-        private Animator _animator;
+        [HideInInspector] public Animator _animator;
         private ThirdPersonInputSystem _inputSystem;
         private PlayerInput _playerInput;
         private GameObject _mainCamera;
@@ -95,21 +95,23 @@ namespace StarterAssets
 
         private void Update()
         {
-            if (freezeMovement || HookManager.Instance.canGrapple) return;
+            if (freezeMovement  || HookManager.Instance.isMovingToGrapplePoint) return;
 
             GroundedCheck();
-            JumpAndGravity();
+            CameraRotation();
         }
 
         private void FixedUpdate()
         {
-            if (freezeMovement || HookManager.Instance.canGrapple) return;
+            if (freezeMovement || HookManager.Instance.isMovingToGrapplePoint) return;
             Move();
+            JumpAndGravity();
         }
 
         private void LateUpdate()
         {
-            CameraRotation();
+            
+            
         }
 
         private void GroundedCheck()

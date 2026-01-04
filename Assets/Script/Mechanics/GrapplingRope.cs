@@ -7,7 +7,7 @@ public class GrapplingRope : MonoBehaviour
     public float springValue;
     private LineRenderer lr;
     private Vector3 currentGrapplePosition;
-    private HookManager hookManager;
+    public HookManager hookManager;
     public int quality;
     public float waveCount;
     public float waveHeight;
@@ -15,12 +15,12 @@ public class GrapplingRope : MonoBehaviour
     private float ropeAnimationTime;
     public float ropeStraightenSpeed = 5f;
     private Vector3 lastGrapplePoint;
-
+    public float ropeSpeed;
 
     void Awake()
     {
         lr = GetComponent<LineRenderer>();
-        hookManager=transform.parent.GetComponent<HookManager>();
+        
         
     }
 
@@ -59,7 +59,7 @@ public class GrapplingRope : MonoBehaviour
         var gunTipPosition = hookManager.gunTip.position;
         var up = Quaternion.LookRotation((grapplePoint - gunTipPosition).normalized) * Vector3.up;
 
-        currentGrapplePosition = Vector3.Lerp(currentGrapplePosition, grapplePoint, Time.deltaTime * 12f);
+        currentGrapplePosition = Vector3.Lerp(currentGrapplePosition, grapplePoint, Time.deltaTime * ropeSpeed);
 
         for (var i = 0; i < quality + 1; i++)
         {
