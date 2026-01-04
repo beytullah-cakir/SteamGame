@@ -17,6 +17,7 @@ public class PlayerClimb : MonoBehaviour
     private ShimmyController shimmyController;
     public Animator animator;
     public GameObject interactUI;
+    
 
     [Header("Climbing State")]
     public PlayerState playerState = PlayerState.NormalState;
@@ -68,6 +69,7 @@ public class PlayerClimb : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         shimmyController = GetComponent<ShimmyController>();
+        
     }
 
     private void Update()

@@ -32,7 +32,7 @@ public class GrapplingRope : MonoBehaviour
 
     void DrawRope()
     {
-        if (!hookManager.isGrappling && !hookManager.isSwinging)
+        if (!hookManager.canGrapple)
         {
             currentGrapplePosition = hookManager.gunTip.position;
             ropeAnimationTime = 0f; 
@@ -45,7 +45,7 @@ public class GrapplingRope : MonoBehaviour
             lr.positionCount = quality + 1;
         }
 
-        var grapplePoint = hookManager.isGrappling? hookManager.GetGrapplePoint() : hookManager.isSwinging ? hookManager.GetSwingingPoint(): Vector3.zero;
+        var grapplePoint = hookManager.canGrapple ? hookManager.GetGrapplePoint() : Vector3.zero;
        
         if (grapplePoint != lastGrapplePoint)
         {
@@ -71,6 +71,18 @@ public class GrapplingRope : MonoBehaviour
                          affectCurve.Evaluate(delta) * waveFactor;
 
             lr.SetPosition(i, Vector3.Lerp(gunTipPosition, currentGrapplePosition, delta) + offset);
+        }
+        float distanceToTarget = Vector3.Distance(currentGrapplePosition, grapplePoint);
+
+        // 0.2f gibi küçük bir eşik değeri (threshold) kullanıyoruz
+        if (distanceToTarget < 0.2f)
+        {
+            // Eğer karakter zaten hareket etmiyorsa ve bu bir Grapple işlemiyse çalıştır
+            if (hookManager.canGrapple && !hookManager.isMovingToGrapplePoint)
+            {
+                hookManager.isMovingToGrapplePoint = true;
+                hookManager.rb.useGravity = false;
+            }
         }
     }
 

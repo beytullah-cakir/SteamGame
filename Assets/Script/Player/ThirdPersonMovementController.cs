@@ -40,7 +40,7 @@ namespace StarterAssets
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
         public bool isGrounded;
-        public bool freezeMovement;
+        public bool freezeMovement;        
 
         // animation IDs
         private int _animIDSpeed;
@@ -95,7 +95,7 @@ namespace StarterAssets
 
         private void Update()
         {
-            if (freezeMovement) return;
+            if (freezeMovement || HookManager.Instance.canGrapple) return;
 
             GroundedCheck();
             JumpAndGravity();
@@ -103,7 +103,7 @@ namespace StarterAssets
 
         private void FixedUpdate()
         {
-            if (freezeMovement) return;
+            if (freezeMovement || HookManager.Instance.canGrapple) return;
             Move();
         }
 
