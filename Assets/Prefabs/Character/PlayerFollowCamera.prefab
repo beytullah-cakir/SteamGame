@@ -110,8 +110,8 @@ MonoBehaviour:
   Damping: {x: 0, y: 0, z: 0}
   ShoulderOffset: {x: 1, y: 0, z: 0}
   VerticalArmLength: 0
-  CameraSide: 0.6
-  CameraDistance: 10
+  CameraSide: 1
+  CameraDistance: 6
   AvoidObstacles:
     Enabled: 0
     CollisionFilter:
