@@ -1,9 +1,13 @@
 using UnityEngine;
 
+public enum BoxColor { None, Red, Blue, Green, Yellow }
+
 [RequireComponent(typeof(Rigidbody))]
 public class BoxPullable : MonoBehaviour
 {
-    
+    [Tooltip("Kutunun bulmacalarda kullanılacak rengi")]
+    public BoxColor boxColor = BoxColor.None;
+
     public bool isHooked;
 
     [HideInInspector] public Rigidbody rb;
