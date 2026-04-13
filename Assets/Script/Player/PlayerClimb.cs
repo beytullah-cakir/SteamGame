@@ -246,33 +246,32 @@ public class PlayerClimb : MonoBehaviour
             }
             else if (isClimbing) // Asılıyken zıplama kontrolleri
             {
-                // S basılıysa ve aşağıda kenar algılandıysa aşağı zıpla
+                // S basılıysa: Aşağı zıpla
                 if (v < -0.3f) 
                 {
                     if (canGrabLedge) StartCoroutine(HopDown()); 
                 }
-                // D basılıysa ve sağda kenar algılandıysa sağa atla
+                // W basılıysa: Sadece yukarı zıpla (kenar var ise)
+                else if (v > 0.3f)
+                {
+                    if (canGrabLedge) StartCoroutine(HopUp());
+                }
+                // D basılıysa: Sağa atla
                 else if (h > 0.3f) 
                 {
                     if (canGrabLedge) StartCoroutine(HopRight()); 
                 }
-                // A basılıysa ve solda kenar algılandıysa sola atla
+                // A basılıysa: Sola atla
                 else if (h < -0.3f) 
                 {
                     if (canGrabLedge) StartCoroutine(HopLeft()); 
                 }
-                // Eğer W basılıysa (veya hiçbirine basılmıyorsa)
+                // Hiçbir yön tuşuna basılmıyorsa (Sadece Space)
                 else 
                 {
                     if (shimmyController.isCrouchLedge) 
                     {
-                        // Kenar olmasına gerek YOK. Yüzey varsa çık!
-                        StartCoroutine(LedgeToClimb()); 
-                    }
-                    else if (canGrabLedge) 
-                    {
-                        // Sadece çıkılacak yüzey yoksa yukarı atla
-                        StartCoroutine(HopUp()); 
+                        StartCoroutine(LedgeToClimb());
                     }
                 }
             }
@@ -363,6 +362,7 @@ public class PlayerClimb : MonoBehaviour
 
     IEnumerator GrabLedge()
     {
+        isJumpingEdge = true;
         isHopping = true;
         isClimbing = true;
 
@@ -372,6 +372,7 @@ public class PlayerClimb : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f); // Reduced wait time for responsiveness
 
+        isJumpingEdge = false; // EKLENDİ: Tutunma bitti, sensörleri tekrar aç
         isHopping = false;
     }
 

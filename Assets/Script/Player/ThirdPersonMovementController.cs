@@ -96,10 +96,12 @@ namespace StarterAssets
 
         private void Update()
         {
+            // Karakter dondurulmuş olsa dahi kameranın farenin hareketlerine tepki vermesi sağlanır
+            CameraRotation();
+
             if (freezeMovement  || HookManager.Instance.isMovingToGrapplePoint) return;
 
             GroundedCheck();
-            CameraRotation();
         }
 
         private void FixedUpdate()
