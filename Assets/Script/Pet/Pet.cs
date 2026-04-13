@@ -3,9 +3,12 @@ using UnityEngine.AI;
 
 public class Pet : MonoBehaviour
 {
-    public Transform player; // S�r�kleyip b�rak�lacak
+    public Transform player;
 
     public float followDistance = 2f;
+
+    [Header("State")]
+    public bool isSitting = false;
 
     private NavMeshAgent agent;
 
@@ -19,6 +22,20 @@ public class Pet : MonoBehaviour
 
     void Update()
     {
+        
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            SetSitting(!isSitting);
+        }
+
+        // Eğer köpek oturuyorsa hareket etmesi ve algoritmanın çalışması engellenir
+        if (isSitting)
+        {
+            Stoping();
+            return;
+        }
+
+        // Normal Takip Mantığı
         if (Vector3.Distance(transform.position, player.position) > followDistance)
         {
             Moving();
@@ -29,6 +46,21 @@ public class Pet : MonoBehaviour
         }        
     }
 
+    // Bu komutu istediğin herhangi bir UI Button veya başka Script içerisinden çağırabilirsin
+    public void SetSitting(bool sitState)
+    {
+        isSitting = sitState;
+        
+        if (isSitting)
+        {
+            Stoping(); // Anında olduğu yerde durdurur
+            if (anm != null) anm.SetBool("IsSitting", true); // Köpeğin Animator'ünde IsSitting (bool) değeri varsa tetikler
+        }
+        else
+        {
+            if (anm != null) anm.SetBool("IsSitting", false);
+        }
+    }
 
     void Moving()
     {
@@ -38,7 +70,8 @@ public class Pet : MonoBehaviour
 
     void Stoping()
     {
-        agent.ResetPath();
+        // Hedefi sıfırla ki durabilsin (Hata vermemesi için NavMesh üzerinde mi diye kontrol edilir)
+        if (agent.isOnNavMesh) agent.ResetPath();
         anm.SetFloat("Vert", agent.velocity.magnitude);
     }
 }
