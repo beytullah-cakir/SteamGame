@@ -89,7 +89,16 @@ public class PlayerClimb : MonoBehaviour
 
         ChecLedgeAirborne();
 
-        LedgeToCrouch();
+        // Çatıya çıkış algoritması Inputs bloğu içerisine aktarıldığı için LedgeToCrouch devre dışıdır.
+
+        // ── YENİ EKLENEN: Karakteri asılıyken devamlı olarak kenar duvarının açısına pürüzsüzce döndür
+        // if (isClimbing && targetRot != Quaternion.identity && !_playerController.isStrafeMode) // (Strafe mode veya başka durumlara karşı güvenli)
+        // {
+        //     Vector3 targetEuler = targetRot.eulerAngles;
+        //     targetEuler.x = 0;
+        //     targetEuler.z = 0; 
+        //     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(targetEuler), Time.deltaTime * 12f);
+        // }
     }
 
 
@@ -221,30 +230,50 @@ public class PlayerClimb : MonoBehaviour
         // Tırmanışa giriş veya tırmanırken zıplama (Jump Action)
         if (_inputSystem.Player.Jump.WasPressedThisFrame())
         {
-            if (canGrabLedge)
+            if (!isClimbing && canGrabLedge)
             {
-                if (!isClimbing)
+                // Airborne grab ile aynı mantık: Anında dondur ve rotasyonu kilitle
+                playerState = PlayerState.ClimbingState;
+                if (_playerController != null) _playerController.freezeMovement = true;
+                _rb.isKinematic = true;
+
+                Vector3 rot = targetRot.eulerAngles;
+                rot.x = 0;
+                rot.z = 0;
+                transform.rotation = Quaternion.Euler(rot);
+
+                StartCoroutine(GrabLedge());
+            }
+            else if (isClimbing) // Asılıyken zıplama kontrolleri
+            {
+                // S basılıysa ve aşağıda kenar algılandıysa aşağı zıpla
+                if (v < -0.3f) 
                 {
-                    // Airborne grab ile aynı mantık: Anında dondur ve rotasyonu kilitle
-                    playerState = PlayerState.ClimbingState;
-                    if (_playerController != null) _playerController.freezeMovement = true;
-                    _rb.isKinematic = true;
-
-                    Vector3 rot = targetRot.eulerAngles;
-                    rot.x = 0;
-                    rot.z = 0;
-                    transform.rotation = Quaternion.Euler(rot);
-
-                    StartCoroutine(GrabLedge());
+                    if (canGrabLedge) StartCoroutine(HopDown()); 
                 }
-                else if (isClimbing)
+                // D basılıysa ve sağda kenar algılandıysa sağa atla
+                else if (h > 0.3f) 
                 {
-                    // Tırmanırken giriş yönüne göre zıplama
-                    if (v > 0.3f) StartCoroutine(HopUp());
-                    else if (v < -0.3f) StartCoroutine(HopDown());
-                    else if (h > 0.3f) StartCoroutine(HopRight());
-                    else if (h < -0.3f) StartCoroutine(HopLeft());
-                    else StartCoroutine(HopUp());
+                    if (canGrabLedge) StartCoroutine(HopRight()); 
+                }
+                // A basılıysa ve solda kenar algılandıysa sola atla
+                else if (h < -0.3f) 
+                {
+                    if (canGrabLedge) StartCoroutine(HopLeft()); 
+                }
+                // Eğer W basılıysa (veya hiçbirine basılmıyorsa)
+                else 
+                {
+                    if (shimmyController.isCrouchLedge) 
+                    {
+                        // Kenar olmasına gerek YOK. Yüzey varsa çık!
+                        StartCoroutine(LedgeToClimb()); 
+                    }
+                    else if (canGrabLedge) 
+                    {
+                        // Sadece çıkılacak yüzey yoksa yukarı atla
+                        StartCoroutine(HopUp()); 
+                    }
                 }
             }
         }
@@ -278,13 +307,7 @@ public class PlayerClimb : MonoBehaviour
         }
     }
 
-    private void LedgeToCrouch()
-    {
-        if (shimmyController.isCrouchLedge && _inputSystem.Player.Jump.WasPressedThisFrame() && isClimbing)
-        {
-            StartCoroutine(LedgeToClimb());
-        }
-    }
+
 
     private bool IsInState(AnimatorStateInfo stateInfo, string stateName)
     {
@@ -331,8 +354,7 @@ public class PlayerClimb : MonoBehaviour
             ApplyMatchTarget(AvatarTarget.LeftHand, new Vector3(1, 1, 1), 0.1f, 0.9f, hopRightOffset);
 
         if (IsInState(stateInfo, "Braced Hang Hop Left"))
-            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 1), 0.33f, 0.85f, hopLeftOffset);
-
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 1), 0.1f, 0.9f, hopLeftOffset); 
         if (IsInState(stateInfo, "Braced Hang Hop Down"))
             ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f, hopDownOffset);
         if (IsInState(stateInfo, "Braced Hang To Crouch"))
