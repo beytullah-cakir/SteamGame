@@ -19,10 +19,6 @@ public class HookManager : MonoBehaviour
     public Vector3 grappleOffset;
     public bool isMovingToGrapplePoint;
 
-    //[Header("Rigging Settings")]
-    //public Rig spineRig,armRig;          // Animator hiyerarþisindeki Rig objesi
-    //public Transform rigTarget;     // Oluþturduðunuz RigTarget objesi
-    //public float rigWeightSpeed = 5f; // Bakýþýn yumuþaklýðý
 
 
     public static HookManager Instance;

@@ -40,7 +40,8 @@ namespace StarterAssets
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
         public bool isGrounded;
-        public bool freezeMovement;        
+        public bool freezeMovement;
+        [HideInInspector] public bool isStrafeMode; // Kanca/itme gibi durumlarda TPS strafe hareketi
 
         // animation IDs
         private int _animIDSpeed;
@@ -168,24 +169,36 @@ namespace StarterAssets
                 _speed = targetSpeed;
             }
 
-            // Normalise input direction
-            Vector3 inputDirection = new Vector3(moveInput.x, 0.0f, moveInput.y).normalized;
-
-            if (moveInput != Vector2.zero)
+            if (isStrafeMode)
             {
-                // Kameranın yönüne göre hareket hedef açısını belirle
-                _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
-                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
-                
-                // Karakteri hareket yönüne döndür
-                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-            }
+                // ── TPS Strafe Modu ─────────────────────────────────────────
+                // Karakter kameranın baktığı yöne döner
+                float cameraYaw = _mainCamera.transform.eulerAngles.y;
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    Quaternion.Euler(0f, cameraYaw, 0f),
+                    Time.fixedDeltaTime * SpeedChangeRate);
 
-            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
-            
-            // Fizik tabanlı hareketi uygula (Sadece X-Z düzleminde)
-            Vector3 velocity = targetDirection.normalized * _speed;
-            _rb.linearVelocity = new Vector3(velocity.x, _rb.linearVelocity.y, velocity.z);
+                // WASD karakterin kendi eksenlerine göre hareket eder
+                Vector3 strafeVelocity = (transform.right * moveInput.x + transform.forward * moveInput.y).normalized * _speed;
+                _rb.linearVelocity = new Vector3(strafeVelocity.x, _rb.linearVelocity.y, strafeVelocity.z);
+            }
+            else
+            {
+                // ── Normal Hareket ──────────────────────────────────────────
+                Vector3 inputDirection = new Vector3(moveInput.x, 0.0f, moveInput.y).normalized;
+
+                if (moveInput != Vector2.zero)
+                {
+                    _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+                    float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
+                    transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                }
+
+                Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+                Vector3 velocity = targetDirection.normalized * _speed;
+                _rb.linearVelocity = new Vector3(velocity.x, _rb.linearVelocity.y, velocity.z);
+            }
 
             if (_animator != null)
             {
