@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
@@ -6,6 +6,11 @@ public class GameManager : MonoBehaviour
 
     public GameObject inventoryPanel;
     public bool inventoryOpen;
+
+    [Header("Esc Menu")]
+    [Tooltip("ESC tusuyla acilip kapanacak obje")]
+    public GameObject escMenuObject;
+    public bool escMenuOpen;
 
     [Header("Indicator")]
     public GameObject indicator;
@@ -28,18 +33,36 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.I))
             OpenMenuScene();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            ToggleEscMenu();
+    }
+
+    public void ToggleEscMenu()
+    {
+        escMenuOpen = !escMenuOpen;
+        if (escMenuObject != null) escMenuObject.SetActive(escMenuOpen);
+
+        UpdateCursorAndTime();
     }
 
     public void OpenMenuScene()
     {
         inventoryOpen = !inventoryOpen;
-        inventoryPanel.SetActive(inventoryOpen);
+        if (inventoryPanel != null) inventoryPanel.SetActive(inventoryOpen);
 
-        Cursor.lockState = inventoryOpen ? CursorLockMode.Confined : CursorLockMode.Locked;
-        Cursor.visible = inventoryOpen;
-
-        Time.timeScale = inventoryOpen ? 0f : 1f;
+        UpdateCursorAndTime();
     }
+
+    private void UpdateCursorAndTime()
+    {
+        bool anyMenuOpen = inventoryOpen || escMenuOpen;
+        
+        Cursor.lockState = anyMenuOpen ? CursorLockMode.Confined : CursorLockMode.Locked;
+        Cursor.visible = anyMenuOpen;
+        Time.timeScale = anyMenuOpen ? 0f : 1f;
+    }
+
     public void UpdateIndicator(bool show, Transform target)
     {
         if (!show || target == null || inventoryOpen)
@@ -50,7 +73,6 @@ public class GameManager : MonoBehaviour
 
         Vector3 screenPos = mainCam.WorldToScreenPoint(target.position);
 
-        // Kamera arkasýndaysa gizle
         if (screenPos.z < 0)
         {
             indicator.SetActive(false);
@@ -60,5 +82,4 @@ public class GameManager : MonoBehaviour
         indicator.SetActive(true);
         indicator.transform.position = screenPos;
     }
-
 }

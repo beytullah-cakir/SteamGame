@@ -73,8 +73,8 @@ public class PressurePlate : MonoBehaviour
         // Tag'i Player olanlar (Karakter)
         if (acceptPlayer && other.CompareTag("Player")) return true;
         
-        // Üzerinde Pet scripti olan objeler (Köpek)
-        if (acceptPet && other.GetComponent<Pet>() != null) return true;
+        // Tag'i "Dog" olan VEYA üstünde/çocuklarında Pet scripti olan objeler (Köpek)
+        if (acceptPet && other.GetComponentInParent<Pet>() != null) return true;
 
         // Üzerinde BoxPullable scripti olup da istenen renkte olan nesneler (Kutular)
         if (acceptBox)

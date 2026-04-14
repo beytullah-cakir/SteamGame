@@ -102,13 +102,13 @@ namespace StarterAssets
             if (freezeMovement  || HookManager.Instance.isMovingToGrapplePoint) return;
 
             GroundedCheck();
+            JumpAndGravity();
         }
 
         private void FixedUpdate()
         {
             if (freezeMovement || HookManager.Instance.isMovingToGrapplePoint) return;
             Move();
-            JumpAndGravity();
         }
 
         private void LateUpdate()
