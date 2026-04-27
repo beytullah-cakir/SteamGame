@@ -11,6 +11,7 @@ public class RoofLedgeDetection : MonoBehaviour
 
     public float rayLength = 0.5f;
     public float rayOffset = 0.15f;
+    public GameObject roofLedgeUI;
     private RaycastHit rayLedgeFwdHit;
     private RaycastHit rayLedgeDwnHit;
 
@@ -21,17 +22,23 @@ public class RoofLedgeDetection : MonoBehaviour
     }
     private void Update()
     {
+        bool detectedThisFrame = false;
+        Vector3 detectionPoint = Vector3.zero;
+
         if (!playerClimbScript.isClimbing)
         {
             for (int i = 0; i < rayAmount; i++)
             {
                 Vector3 rayPos = transform.position + Vector3.up * 0.5f + transform.forward * rayOffset * i;
 
-               Debug.DrawRay(rayPos, Vector3.down * rayLength, Color.yellow);
+                Debug.DrawRay(rayPos, Vector3.down * rayLength, Color.yellow);
 
                 if (Physics.Raycast(rayPos, Vector3.down, out rayLedgeDwnHit, rayLength, playerClimbScript.ledgeLayer))
                 {
                     isRoofLedgeDetected = true;
+                    detectedThisFrame = true;
+                    detectionPoint = rayLedgeDwnHit.point;
+
                     Debug.DrawRay(rayLedgeDwnHit.point + transform.forward * 0.5f, -transform.forward * 1, Color.yellow);
                     if (Physics.Raycast(rayLedgeDwnHit.point + rayLedgeDwnHit.transform.forward * 0.5f, -rayLedgeDwnHit.transform.forward, out rayLedgeFwdHit, 1, playerClimbScript.ledgeLayer))
                     {
@@ -46,15 +53,18 @@ public class RoofLedgeDetection : MonoBehaviour
 
                     break;
                 }
-                else
-                {
-                    isRoofLedgeDetected = false;
-                }
             }
         }
-        else
+
+        if (!detectedThisFrame)
         {
             isRoofLedgeDetected = false;
+        }
+
+        // UI Göstergesini Güncelle
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.UpdateIndicator(roofLedgeUI, isRoofLedgeDetected && !playerClimbScript.isClimbing, rayLedgeDwnHit.collider != null ? rayLedgeDwnHit.collider.transform : null);
         }
         
     }

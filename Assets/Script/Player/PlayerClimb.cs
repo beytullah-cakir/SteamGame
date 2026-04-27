@@ -16,8 +16,12 @@ public class PlayerClimb : MonoBehaviour
     private ThirdPersonInputSystem _inputSystem;
     private ShimmyController shimmyController;
     public Animator animator;
-    public GameObject interactUI;
-    
+    public GameObject grabLedgeUI;
+    public GameObject hopUpUI;
+    public GameObject hopRightUI;
+    public GameObject hopLeftUI;
+    public GameObject hopDownUI;
+
 
     [Header("Climbing State")]
     public PlayerState playerState = PlayerState.NormalState;
@@ -27,16 +31,17 @@ public class PlayerClimb : MonoBehaviour
 
     [Header("Layer Settings")]
     public LayerMask ledgeLayer;
+    public LayerMask airborneLedgeLayer;
 
     [Header("Climbing Settings")]
     public Vector3 sphereOffset = new Vector3(0, 1.5f, 0);
     public float sphereRadius = 0.3f;
     public float capsuleLength = 0.7f;
-    
+
     [Header("Airborne Chest Detection")]
     public Vector3 chestDetectionOffset = new Vector3(0, 1.2f, 0);
     public float chestSphereRadius = 0.25f;
-    public float chestMaxDistance = 0.6f;
+
 
     [Header("Animation Offsets (X: Side, Y: Up, Z: Forward)")]
     public Vector3 idleToHangOffset;
@@ -69,7 +74,7 @@ public class PlayerClimb : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         shimmyController = GetComponent<ShimmyController>();
-        
+
     }
 
     private void Update()
@@ -84,48 +89,75 @@ public class PlayerClimb : MonoBehaviour
 
         MatchTargetToLedge();
 
-        if (interactUI != null)
-            interactUI.SetActive(canGrabLedge && !isClimbing);
+        // Global indikatör sistemini kullanmak için GameManager'ı güncelliyoruz
+        if (GameManager.Instance != null)
+        {
+            GameObject currentUI = null;
+
+            if (isClimbing)
+            {
+                // 1. Öncelik oyuncu girişinde (WASD basılıyorsa o yönün ikonunu göster)
+                if (v > 0.1f) currentUI = hopUpUI;
+                else if (v < -0.1f) currentUI = hopDownUI;
+                else if (h > 0.1f) currentUI = hopRightUI;
+                else if (h < -0.1f) currentUI = hopLeftUI;
+                // 2. Giriş yoksa ama bir kenar algılanmışsa, o kenarın yönünü bul ve uygun ikonu göster
+                else if (canGrabLedge && _detectedLedge != null)
+                {
+                    Vector3 relativePos = transform.InverseTransformPoint(climbTarget);
+                    
+                    // Yükseklik farkı belirginse (Y ekseni)
+                    if (relativePos.y > 0.3f) currentUI = hopUpUI;
+                    else if (relativePos.y < -0.3f) currentUI = hopDownUI;
+                    // Yanlardaysa (X ekseni)
+                    else if (relativePos.x > 0.3f) currentUI = hopRightUI;
+                    else if (relativePos.x < -0.3f) currentUI = hopLeftUI;
+                }
+            }
+            else if (_playerController.isGrounded)
+            {
+                // Sadece yerdeyken kenara tutunma ikonunu göster
+                currentUI = grabLedgeUI;
+            }
+
+            // Diğer tüm ikonları pasif yapalım ki çakışmasınlar
+            if (currentUI != hopUpUI && hopUpUI != null) hopUpUI.SetActive(false);
+            if (currentUI != hopDownUI && hopDownUI != null) hopDownUI.SetActive(false);
+            if (currentUI != hopRightUI && hopRightUI != null) hopRightUI.SetActive(false);
+            if (currentUI != hopLeftUI && hopLeftUI != null) hopLeftUI.SetActive(false);
+            if (currentUI != grabLedgeUI && grabLedgeUI != null) grabLedgeUI.SetActive(false);
+
+            GameManager.Instance.UpdateIndicator(currentUI, canGrabLedge && !isHopping, _detectedLedge != null ? _detectedLedge.transform : null);
+        }
 
         ChecLedgeAirborne();
-
-        // Çatıya çıkış algoritması Inputs bloğu içerisine aktarıldığı için LedgeToCrouch devre dışıdır.
-
-        // ── YENİ EKLENEN: Karakteri asılıyken devamlı olarak kenar duvarının açısına pürüzsüzce döndür
-        // if (isClimbing && targetRot != Quaternion.identity && !_playerController.isStrafeMode) // (Strafe mode veya başka durumlara karşı güvenli)
-        // {
-        //     Vector3 targetEuler = targetRot.eulerAngles;
-        //     targetEuler.x = 0;
-        //     targetEuler.z = 0; 
-        //     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(targetEuler), Time.deltaTime * 12f);
-        // }
     }
 
 
     void ChecLedgeAirborne()
     {
-        
+
         if (!isClimbing && !isHopping && !_playerController.isGrounded)
         {
             // Göğüs hizasındaki yerel ofseti dünya koordinatına çeviriyoruz
             Vector3 chestOrigin = transform.TransformPoint(chestDetectionOffset);
 
             // SphereCast yerine OverlapSphere kullanarak doğrudan çarpışma kontrolü yapıyoruz
-            Collider[] colliders = Physics.OverlapSphere(chestOrigin, chestSphereRadius, ledgeLayer);
+            Collider[] colliders = Physics.OverlapSphere(chestOrigin, chestSphereRadius, airborneLedgeLayer);
 
             if (colliders.Length > 0)
             {
                 canGrabLedge = true;
                 _detectedLedge = colliders[0];
-                
+
                 // Kenar üzerindeki en yakın noktayı hedef al
                 climbTarget = _detectedLedge.ClosestPoint(chestOrigin);
-                
+
                 // Kenarın kendi rotasyonunu ve yönünü baz al (CheckingMain ile aynı mantık)
                 targetRot = _detectedLedge.transform.rotation;
-                
 
-                
+
+
 
                 // Karakterin rotasyonunu anında düzelt
                 Vector3 currentRot = targetRot.eulerAngles;
@@ -200,14 +232,6 @@ public class PlayerClimb : MonoBehaviour
         {
             climbTarget = point;
             targetRot = col.transform.rotation;
-            
-        }
-
-        if (interactUI != null && !isClimbing)
-        {
-            interactUI.SetActive(true);
-            Vector3 uiPos = point + Vector3.up * 0.5f;
-            interactUI.transform.position = Camera.main.WorldToScreenPoint(uiPos);
         }
     }
 
@@ -215,7 +239,6 @@ public class PlayerClimb : MonoBehaviour
     {
         _detectedLedge = null;
         canGrabLedge = false;
-        if (interactUI != null) interactUI.SetActive(false);
     }
 
     private void Inputs()
@@ -247,9 +270,9 @@ public class PlayerClimb : MonoBehaviour
             else if (isClimbing) // Asılıyken zıplama kontrolleri
             {
                 // S basılıysa: Aşağı zıpla
-                if (v < -0.3f) 
+                if (v < -0.3f)
                 {
-                    if (canGrabLedge) StartCoroutine(HopDown()); 
+                    if (canGrabLedge) StartCoroutine(HopDown());
                 }
                 // W basılıysa: Sadece yukarı zıpla (kenar var ise)
                 else if (v > 0.3f)
@@ -257,19 +280,19 @@ public class PlayerClimb : MonoBehaviour
                     if (canGrabLedge) StartCoroutine(HopUp());
                 }
                 // D basılıysa: Sağa atla
-                else if (h > 0.3f) 
+                else if (h > 0.3f)
                 {
-                    if (canGrabLedge) StartCoroutine(HopRight()); 
+                    if (canGrabLedge) StartCoroutine(HopRight());
                 }
                 // A basılıysa: Sola atla
-                else if (h < -0.3f) 
+                else if (h < -0.3f)
                 {
-                    if (canGrabLedge) StartCoroutine(HopLeft()); 
+                    if (canGrabLedge) StartCoroutine(HopLeft());
                 }
                 // Hiçbir yön tuşuna basılmıyorsa (Sadece Space)
-                else 
+                else
                 {
-                    if (shimmyController.isCrouchLedge) 
+                    if (shimmyController.isCrouchLedge)
                     {
                         StartCoroutine(LedgeToClimb());
                     }
@@ -299,9 +322,7 @@ public class PlayerClimb : MonoBehaviour
         else if (playerState == PlayerState.ClimbingState)
         {
             _playerController.freezeMovement = true;
-
             _rb.isKinematic = true;
-
             animator.applyRootMotion = true;
         }
     }
@@ -331,8 +352,8 @@ public class PlayerClimb : MonoBehaviour
         );
     }
 
-    
-    
+
+
 
     private void MatchTargetToLedge()
     {
@@ -353,11 +374,11 @@ public class PlayerClimb : MonoBehaviour
             ApplyMatchTarget(AvatarTarget.LeftHand, new Vector3(1, 1, 1), 0.1f, 0.9f, hopRightOffset);
 
         if (IsInState(stateInfo, "Braced Hang Hop Left"))
-            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 1), 0.1f, 0.9f, hopLeftOffset); 
+            ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(1, 1, 1), 0.1f, 0.9f, hopLeftOffset);
         if (IsInState(stateInfo, "Braced Hang Hop Down"))
             ApplyMatchTarget(AvatarTarget.RightHand, new Vector3(0, 1, 1), 0.1f, 0.9f, hopDownOffset);
         if (IsInState(stateInfo, "Braced Hang To Crouch"))
-            ApplyMatchTarget(AvatarTarget.RightFoot, new Vector3(0, 1, 1), 0.41f, 0.87f,roofLedgeOffset);
+            ApplyMatchTarget(AvatarTarget.RightFoot, new Vector3(0, 1, 1), 0.41f, 0.87f, roofLedgeOffset);
     }
 
     IEnumerator GrabLedge()
@@ -367,7 +388,7 @@ public class PlayerClimb : MonoBehaviour
         isClimbing = true;
 
         _currentLedge = _detectedLedge;
-        
+
         animator.Play("Idle To Braced Hang");
 
         yield return new WaitForSeconds(0.5f); // Reduced wait time for responsiveness
@@ -379,14 +400,14 @@ public class PlayerClimb : MonoBehaviour
     IEnumerator GrabLedgeAirborne()
     {
         playerState = PlayerState.ClimbingState;
-        _playerController.freezeMovement = true;
-        _rb.isKinematic = true;
+        //_playerController.freezeMovement = true;
+        //_rb.isKinematic = true;
         isHopping = true;
         isClimbing = true;
         isJumpingEdge = true;
 
         _currentLedge = _detectedLedge;
-        
+
 
         animator.Play("Hanging Idle In Air");
 
@@ -457,7 +478,7 @@ public class PlayerClimb : MonoBehaviour
 
         isHopping = false;
         isClimbing = false;
-        
+
         // Rigidbody hızını sıfırla ki fizik devreye girince aniden fırlamasın
         if (_rb != null)
         {
@@ -518,15 +539,14 @@ public class PlayerClimb : MonoBehaviour
         if (canGrabLedge)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(climbTarget, 0.05f);            
+            Gizmos.DrawSphere(climbTarget, 0.05f);
         }
         // Chest SphereCast Gizmo
         Gizmos.color = Color.magenta;
         Vector3 chestOrigin = transform.TransformPoint(chestDetectionOffset);
         Gizmos.DrawWireSphere(chestOrigin, chestSphereRadius);
-        Gizmos.DrawLine(chestOrigin, chestOrigin + transform.forward * chestMaxDistance);
-            
-        
+
+
     }
 }
 

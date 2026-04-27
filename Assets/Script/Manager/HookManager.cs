@@ -60,7 +60,7 @@ public class HookManager : MonoBehaviour
         
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f));
         bool foundGrapple = Physics.SphereCast(ray, 1f, out grappleHit, maxDistance, grappleLayer);
-        GameManager.Instance.UpdateIndicator(foundGrapple, grappleHit.collider != null ? grappleHit.collider.transform : null);
+        GameManager.Instance.UpdateIndicator(GameManager.Instance.indicator, foundGrapple, grappleHit.collider != null ? grappleHit.collider.transform : null);
 
         if (foundGrapple)
         {

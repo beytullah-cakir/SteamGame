@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
@@ -63,23 +63,36 @@ public class GameManager : MonoBehaviour
         Time.timeScale = anyMenuOpen ? 0f : 1f;
     }
 
-    public void UpdateIndicator(bool show, Transform target)
+    public void UpdateIndicator(GameObject ui, bool show, Vector3 worldPos)
     {
-        if (!show || target == null || inventoryOpen)
+        if (ui == null) return;
+
+        if (!show || inventoryOpen)
         {
-            indicator.SetActive(false);
+            ui.SetActive(false);
             return;
         }
 
-        Vector3 screenPos = mainCam.WorldToScreenPoint(target.position);
+        Vector3 screenPos = mainCam.WorldToScreenPoint(worldPos);
 
+        // Hedef kameranın arkasındaysa gizle
         if (screenPos.z < 0)
         {
-            indicator.SetActive(false);
+            ui.SetActive(false);
             return;
         }
 
-        indicator.SetActive(true);
-        indicator.transform.position = screenPos;
+        ui.SetActive(true);
+        ui.transform.position = screenPos;
+    }
+
+    public void UpdateIndicator(GameObject ui, bool show, Transform target)
+    {
+        if (target == null)
+        {
+            UpdateIndicator(ui, false, Vector3.zero);
+            return;
+        }
+        UpdateIndicator(ui, show, target.position);
     }
 }
