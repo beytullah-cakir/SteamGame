@@ -228,7 +228,9 @@ public class PlayerClimb : MonoBehaviour
         _detectedLedge = col;
         canGrabLedge = true;
 
-        if (!isClimbing || isHopping)
+        // Hem yerden ilk tutunmada hem de asılıyken farklı kenar algılandığında hedefi güncelle
+        // Önceki koşul (!isClimbing || isHopping) tutunan kenara zıplanmasını kıyıyordu
+        if (col != _currentLedge)
         {
             climbTarget = point;
             targetRot = col.transform.rotation;
@@ -269,33 +271,29 @@ public class PlayerClimb : MonoBehaviour
             }
             else if (isClimbing) // Asılıyken zıplama kontrolleri
             {
-                // S basılıysa: Aşağı zıpla
-                if (v < -0.3f)
+                float absH = Mathf.Abs(h);
+                float absV = Mathf.Abs(v);
+                bool hasInput = absH > 0.3f || absV > 0.3f;
+
+                if (hasInput)
                 {
-                    if (canGrabLedge) StartCoroutine(HopDown());
+                    // Çapraz atlamada yatay (Sağ/Sol) animasyonun öncelikli olmasını sağlıyoruz
+                    if (absH > 0.3f)
+                    {
+                        if (h > 0.3f && canGrabLedge) StartCoroutine(HopRight());
+                        else if (h < -0.3f && canGrabLedge) StartCoroutine(HopLeft());
+                    }
+                    else // Sadece dikey giriş varsa dikey zıpla
+                    {
+                        if (v > 0.3f && canGrabLedge) StartCoroutine(HopUp());
+                        else if (v < -0.3f && canGrabLedge) StartCoroutine(HopDown());
+                    }
                 }
-                // W basılıysa: Sadece yukarı zıpla (kenar var ise)
-                else if (v > 0.3f)
-                {
-                    if (canGrabLedge) StartCoroutine(HopUp());
-                }
-                // D basılıysa: Sağa atla
-                else if (h > 0.3f)
-                {
-                    if (canGrabLedge) StartCoroutine(HopRight());
-                }
-                // A basılıysa: Sola atla
-                else if (h < -0.3f)
-                {
-                    if (canGrabLedge) StartCoroutine(HopLeft());
-                }
-                // Hiçbir yön tuşuna basılmıyorsa (Sadece Space)
                 else
                 {
+                    // Hiçbir yön tuşuna basılmıyorsa: Tırmanma kontrolü
                     if (shimmyController.isCrouchLedge)
-                    {
                         StartCoroutine(LedgeToClimb());
-                    }
                 }
             }
         }

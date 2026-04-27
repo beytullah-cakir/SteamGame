@@ -129,7 +129,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 782509816068619751, guid: 21239552fb7952141aadd65b4c014477, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.87
+      value: -5.628
       objectReference: {fileID: 0}
     - target: {fileID: 782509816068619751, guid: 21239552fb7952141aadd65b4c014477, type: 3}
       propertyPath: m_LocalPosition.y
@@ -175,7 +175,8 @@ PrefabInstance:
       propertyPath: grappleDetectRadius
       value: 1.2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6579500732374389514, guid: 21239552fb7952141aadd65b4c014477, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1561,7 +1562,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 20}
+  m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &267292953
 MonoBehaviour:
@@ -2201,6 +2202,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 2023533715536725537, guid: f4e4d387dfe5d0c4b89b3adbb33e98a2, type: 3}
+      propertyPath: grappleOffset.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2023533715536725537, guid: f4e4d387dfe5d0c4b89b3adbb33e98a2, type: 3}
+      propertyPath: grappleOffset.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2191206528034975355, guid: f4e4d387dfe5d0c4b89b3adbb33e98a2, type: 3}
       propertyPath: m_Layer
       value: 11
@@ -2347,11 +2356,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5258547668482503212, guid: f4e4d387dfe5d0c4b89b3adbb33e98a2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.03
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 5258547668482503212, guid: f4e4d387dfe5d0c4b89b3adbb33e98a2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -9.01
+      value: -8.82
       objectReference: {fileID: 0}
     - target: {fileID: 5258547668482503212, guid: f4e4d387dfe5d0c4b89b3adbb33e98a2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -5227,11 +5236,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.405
+      value: 1.425
       objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -15.01
+      value: -14.82
       objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -15513,11 +15522,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.405
+      value: 1.425
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -15.01
+      value: -14.82
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -16329,8 +16338,8 @@ Transform:
   m_GameObject: {fileID: 1915944792}
   serializedVersion: 2
   m_LocalRotation: {x: -1.1102227e-17, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.8660002, y: -0.23000002, z: -2.027}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -1.068, y: -0.23000002, z: -2.027}
+  m_LocalScale: {x: 0.68, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1439049458}
@@ -17288,9 +17297,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6579500732374389514, guid: 21239552fb7952141aadd65b4c014477, type: 3}
       propertyPath: grappleDetectRadius
-      value: 1.2
+      value: 2.18
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6579500732374389514, guid: 21239552fb7952141aadd65b4c014477, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
