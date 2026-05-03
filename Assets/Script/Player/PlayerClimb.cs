@@ -443,7 +443,7 @@ public class PlayerClimb : MonoBehaviour
         _currentLedge = _detectedLedge;
         isHopping = false;
     }
-
+    /*
     IEnumerator LedgeToClimb()
     {
         isHopping = true;
@@ -467,7 +467,37 @@ public class PlayerClimb : MonoBehaviour
 
         playerState = PlayerState.NormalState;
     }
+    */
+    IEnumerator LedgeToClimb()
+    {
+        isHopping = true;
 
+        // Karakterin Collider'ını geçici olarak kapatıyoruz ki çatıya tırmanırken köşelere takılıp fiziği bozmasın.
+        CapsuleCollider col = GetComponent<CapsuleCollider>();
+        if (col != null) col.enabled = false;
+
+        animator.Play("Braced Hang To Crouch");
+
+        // Animasyonun bitmesini bekle
+        yield return new WaitForSeconds(1.2f);
+
+        // Animasyon bittiğinde, karakteri tam olarak animasyonun onu bıraktığı (Root) pozisyona oturt.
+        transform.position = animator.rootPosition;
+
+        if (col != null) col.enabled = true;
+
+        isHopping = false;
+        isClimbing = false;
+        playerState = PlayerState.NormalState;
+
+        // Fiziği tekrar açarken eski hızların karakteri fırlatmasını engelle
+        if (_rb != null)
+        {
+            _rb.isKinematic = false;
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+        }
+    }
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying && h == 0 && v == 0) h = 0;
