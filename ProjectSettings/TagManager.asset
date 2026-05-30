@@ -14,6 +14,9 @@ TagManager:
   - Grapple
   - RoofLedge
   - CinemachineTarget
+  - Mirror
+  - Prism
+  - Receptor
   layers:
   - Default
   - TransparentFX
